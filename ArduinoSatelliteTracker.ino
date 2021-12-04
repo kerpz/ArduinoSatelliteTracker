@@ -121,7 +121,7 @@ void execEvery(int ms) {
     msTick = millis();
 
     if (display_enable) displayLoop();
-    if (mpu6050_enable) mpu6050Loop();
+    //if (mpu6050_enable) mpu6050Loop();
     if (motor_enable) motorLoop();
     
     if (second >= 59) {
@@ -163,6 +163,7 @@ void setup() {
 void loop() {
   execEvery(5);
 
+  if (mpu6050_enable) mpu6050Loop();
   // dns server
   dnsServer.processNextRequest();
   // web server
