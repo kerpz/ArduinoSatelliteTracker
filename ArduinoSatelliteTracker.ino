@@ -153,7 +153,7 @@ void setup() {
   wifiSetup();
 
   if (display_enable) displaySetup();
-  if (mpu6050_enable) mpu6050Setup();
+  if (mpu6050_enable) mpu9250Setup();
   if (motor_enable) motorSetup();
 
   //ads.begin();
@@ -168,7 +168,7 @@ void setup() {
 void loop() {
   execEvery(5);
 
-  if (mpu6050_enable) mpu6050Loop();
+  if (mpu6050_enable) mpu9250Loop();
   // dns server
   dnsServer.processNextRequest();
   // web server

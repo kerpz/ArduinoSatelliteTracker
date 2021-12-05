@@ -41,17 +41,18 @@ void I2CwriteByte(uint8_t Address, uint8_t Register, uint8_t Data)
 }
 
 void mpu9250Setup() {
+  I2CwriteByte(MPU_addr, 0x6B, 0x00);
   // Set accelerometers low pass filter at 5Hz
-  I2CwriteByte(MPU_addr, 29, 0x06);
+  //I2CwriteByte(MPU_addr, 29, 0x06);
   // Set gyroscope low pass filter at 5Hz
-  I2CwriteByte(MPU_addr, 26, 0x06);
+  //I2CwriteByte(MPU_addr, 26, 0x06);
 
   // Configure gyroscope range
-  I2CwriteByte(MPU_addr, 27, GYRO_FULL_SCALE_1000_DPS);
+  //I2CwriteByte(MPU_addr, 27, GYRO_FULL_SCALE_1000_DPS);
   // Configure accelerometers range
-  I2CwriteByte(MPU_addr, 28, ACC_FULL_SCALE_4_G);
+  //I2CwriteByte(MPU_addr, 28, ACC_FULL_SCALE_4_G);
   // Set by pass mode for the magnetometers
-  I2CwriteByte(MPU_addr, 0x37, 0x02);
+  //I2CwriteByte(MPU_addr, 0x37, 0x02);
 
   // Request continuous magnetometer measurements in 16 bits
   //I2CwriteByte(MAG_addr, 0x0A, 0x16);
@@ -99,7 +100,9 @@ void mpu9250Loop() {
   int16_t GyY = Buf[10] << 8 | Buf[11];
   int16_t GyZ = Buf[12] << 8 | Buf[13];
 
-  temperature = Tmp / 340.00 + 36.53;
+  //temperature = Tmp / 340.00 + 36.53;
+  temperature = ((double)Tmp + 12412.0) / 340.0;
+  
 
   int xAng = map(AcX, minVal, maxVal, -90, 90);
   int yAng = map(AcY, minVal, maxVal, -90, 90);
