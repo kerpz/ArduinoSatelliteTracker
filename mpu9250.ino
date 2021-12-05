@@ -13,6 +13,9 @@
 #define ACC_FULL_SCALE_8_G 0x10
 #define ACC_FULL_SCALE_16_G 0x18
 
+#define minVal 265
+#define maxVal 402
+
 // This function read Nbytes bytes from I2C device at address Address. 
 // Put read bytes starting at register Register in the Data array. 
 void I2Cread(uint8_t Address, uint8_t Register, uint8_t Nbytes, uint8_t *Data)
@@ -41,6 +44,7 @@ void I2CwriteByte(uint8_t Address, uint8_t Register, uint8_t Data)
 }
 
 void mpu9250Setup() {
+  Wire.begin();
   I2CwriteByte(MPU_addr, 0x6B, 0x00);
   // Set accelerometers low pass filter at 5Hz
   //I2CwriteByte(MPU_addr, 29, 0x06);
@@ -85,23 +89,19 @@ void mpu9250Loop() {
   uint8_t Buf[14];
   I2Cread(MPU_addr, 0x3B, 14, Buf);
    
-  // Create 16 bits values from 8 bits data
-   
-  // Accelerometer
-  int16_t AcX = Buf[0] << 8 | Buf[1];
-  int16_t AcY = Buf[2] << 8 | Buf[3];
-  int16_t AcZ = Buf[4] << 8 | Buf[5];
+  int16_t AcX = Buf[0]<<8|Buf[1];
+  int16_t AcY = Buf[2]<<8|Buf[3];
+  int16_t AcZ = Buf[4]<<8|Buf[5];
+  int16_t Tmp = Buf[6]<<8|Buf[7];
+  int16_t GyX = Buf[8]<<8|Buf[9];
+  int16_t GyY = Buf[10]<<8|Buf[11];
+  int16_t GyZ = Buf[12]<<8|Buf[13];
 
-  // Temperature
-  int16_t Tmp = Buf[6] << 8 | Buf[7];
-   
-  // Gyroscope
-  int16_t GyX = Buf[8] << 8 | Buf[9];
-  int16_t GyY = Buf[10] << 8 | Buf[11];
-  int16_t GyZ = Buf[12] << 8 | Buf[13];
-
-  //temperature = Tmp / 340.00 + 36.53;
-  temperature = ((double)Tmp + 12412.0) / 340.0;
+  // mpu6050
+  //temperature = ((float)Tmp) / 340.0 + 36.53;
+  //temperature = ((double)Tmp + 12412.0) / 340.0;
+  // mpu9250
+  temperature = ((float) Tmp) / 333.87 + 21.0;
   
 
   int xAng = map(AcX, minVal, maxVal, -90, 90);

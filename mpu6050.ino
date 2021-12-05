@@ -21,7 +21,7 @@ void mpu6050Loop() {
   Wire.write(0x3B);
   Wire.endTransmission(false);
   if (Wire.endTransmission() == 0) {
-    Wire.requestFrom(MPU_addr, 14, true);
+    Wire.requestFrom(MPU_addr, 14);
   
     int16_t AcX = Wire.read()<<8|Wire.read();
     int16_t AcY = Wire.read()<<8|Wire.read();
@@ -31,8 +31,11 @@ void mpu6050Loop() {
     int16_t GyY = Wire.read()<<8|Wire.read();
     int16_t GyZ = Wire.read()<<8|Wire.read();
     
-    //temperature = Tmp / 340.00 + 36.53;
-    temperature = ((double)Tmp + 12412.0) / 340.0;
+    // mpu6050
+    //temperature = ((float)Tmp) / 340.0 + 36.53;
+    //temperature = ((double)Tmp + 12412.0) / 340.0;
+    // mpu9250
+    temperature = ((float) Tmp) / 333.87 + 21.0;
   
     int xAng = map(AcX, minVal, maxVal, -90, 90);
     int yAng = map(AcY, minVal, maxVal, -90, 90);
