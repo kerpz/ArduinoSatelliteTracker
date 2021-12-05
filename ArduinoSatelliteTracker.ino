@@ -40,6 +40,11 @@ float y;
 float z;
 float temperature;
 
+float az_min = 0.0;
+float az_max = 360.0;
+float el_min = 0.0;
+float el_max = 180.0;
+
 // motor part
 uint8_t motor_mode;
 
@@ -50,7 +55,7 @@ uint8_t mpu6050_enable;
 uint8_t motor_enable = 1;
 
 uint16_t wifi_error = 0;
-uint16_t mpu6050_error = 0;
+uint16_t mpu_error = 0;
 
 uint16_t run_time = 0;
 

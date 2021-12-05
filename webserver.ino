@@ -1,3 +1,5 @@
+// https://randomnerdtutorials.com/esp8266-nodemcu-websocket-server-arduino/
+
 void webserverSetup() {
   webServer.on("/", handleRoot);
   webServer.on("/info", handleInfo);
@@ -181,6 +183,8 @@ void handleInfo() {
   body += F("<h3>Error Counter</h3>");
   body += F("<table class=\"table\"><tbody><tr><td>Wifi Error</td><td>");
   body += String(wifi_error);
+  body += F("</td></tr><tr><td>MPU Error</td><td>");
+  body += String(mpu_error);
   body += F("</td></tr><tr><td>Run Time (minutes)</td><td>");
   body += String(run_time);
   body += F("</td></tr></tbody></table><br><br>");
@@ -297,6 +301,7 @@ void handleControl() {
 
   String body = F( "<nav><b>" )+String(APPNAME)+F( "</b>Control</nav><br>" );
 
+/*
   body += F( "<form method=\"post\" action=\"/control\">"
              "<h3>Motor Control</h3>"
              "<label>Mode</label>"
@@ -319,6 +324,29 @@ void handleControl() {
              "</select><br>"
              "<button class=\"btn\" type=\"submit\">Submit</button>"
              "</form>"
+*/
+  body += F( "<table class=\"table\"><tbody><tr><td>"
+             "<form method=\"post\" action=\"/control\">"
+             "<input type=\"hidden\" name=\"motor_m\" value=\"2\">"
+             "<button class=\"btn\" type=\"submit\">Left</button>"
+             "</form></td><td>"
+             "<form method=\"post\" action=\"/control\">"
+             "<input type=\"hidden\" name=\"motor_m\" value=\"1\">"
+             "<button class=\"btn\" type=\"submit\">Right</button>"
+             "</form></td></tr><tr><td>"
+             "<form method=\"post\" action=\"/control\">"
+             "<input type=\"hidden\" name=\"motor_m\" value=\"3\">"
+             "<button class=\"btn\" type=\"submit\">Up</button>"
+             "</form></td><td>"
+             "<form method=\"post\" action=\"/control\">"
+             "<input type=\"hidden\" name=\"motor_m\" value=\"4\">"
+             "<button class=\"btn\" type=\"submit\">Down</button>"
+             "</form></td></tr></tbody></table>"
+             "<form method=\"post\" action=\"/control\">"
+             "<input type=\"hidden\" name=\"motor_m\" value=\"0\">"
+             "<button class=\"btn\" type=\"submit\">STOP</button>"
+             "</form><br>"
+
              "<a class=\"btn\" href=\"/\">Back</a><br><br>" );
 
   webServer.send(200, "text/html", createPage(body));
