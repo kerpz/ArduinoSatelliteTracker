@@ -20,12 +20,12 @@ void displaySetup() {
 void displayLoop() {
   display.clearDisplay();
   display.setCursor(0,0);
-  display.print("X: ");
-  display.println(x);
   display.print("Y: ");
-  display.println(y);
-  display.print("Z: ");
-  display.println(z);
+  display.println(yaw);
+  display.print("P: ");
+  display.println(pitch);
+  display.print("R: ");
+  display.println(roll);
   display.print("T: ");
   display.println(temperature);
   //display.println(ct_current, 2);

@@ -8,6 +8,7 @@
  Software:
  - Arduino 1.8.12 (Stable)
  - Board 2.7.1, payload bug empty
+ https://github.com/shubhampaul/Real_Time_Planet_Tracking_System
 */
 
 #include <ESP8266WiFi.h>
@@ -35,9 +36,9 @@ char ssid[32] = "";
 char password[32] = "";
 
 // mpu6050 part
-float x;
-float y;
-float z;
+float yaw;
+float pitch;
+float roll;
 float temperature;
 
 float az_min = 0.0;
@@ -51,7 +52,9 @@ uint8_t motor_mode;
 //
 uint8_t display_enable;
 uint8_t beep_enable;
-uint8_t mpu6050_enable;
+uint8_t mpu9250_enable;
+uint8_t mpu9250_found = 0;
+uint8_t ak8963_found = 0;
 uint8_t motor_enable = 1;
 
 uint16_t wifi_error = 0;
@@ -81,7 +84,7 @@ void loadConfig() {
   EEPROM.get(32, password); // 32
 
   // mpu6050 part
-  EEPROM.get(64, mpu6050_enable); // 1
+  EEPROM.get(64, mpu9250_enable); // 1
   // Display part
   EEPROM.get(65, display_enable); // 1
   // BEEP part
@@ -94,6 +97,7 @@ void loadConfig() {
   if (String(ok) != String("OK")) {
     ssid[0] = 0;
     password[0] = 0;
+    mpu9250_enable = 0;
     display_enable = 0;
     beep_enable = 0;
   }
@@ -107,7 +111,7 @@ void saveConfig() {
   EEPROM.put(32, password); // 32
 
   // mpu6050 part
-  EEPROM.put(64, mpu6050_enable); // 1
+  EEPROM.put(64, mpu9250_enable); // 1
   // Display part
   EEPROM.put(65, display_enable); // 1
   // BEEP part
@@ -125,9 +129,9 @@ void execEvery(int ms) {
   if (millis() - msTick >= ms) { // run every N ms
     msTick = millis();
 
-    if (display_enable) displayLoop();
+    //if (display_enable) displayLoop();
     //if (mpu6050_enable) mpu6050Loop();
-    if (motor_enable) motorLoop();
+    //if (motor_enable) motorLoop();
     
     if (second >= 59) {
 
@@ -153,7 +157,7 @@ void setup() {
   wifiSetup();
 
   if (display_enable) displaySetup();
-  if (mpu6050_enable) mpu9250Setup();
+  if (mpu9250_enable) mpu9250Setup();
   if (motor_enable) motorSetup();
 
   //ads.begin();
@@ -166,9 +170,11 @@ void setup() {
 }
 
 void loop() {
-  execEvery(5);
+  execEvery(1000);
 
-  if (mpu6050_enable) mpu9250Loop();
+  if (mpu9250_enable && mpu9250_found) mpu9250Loop();
+  if (motor_enable) motorLoop();
+  
   // dns server
   dnsServer.processNextRequest();
   // web server

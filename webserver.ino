@@ -169,13 +169,13 @@ void handleInfo() {
   body += String(motor_mode);
   body += F("</td></tr></tbody></table><br>");
 
-  body += F("<h3>MPU6050 Data</h3>");
-  body += F("<table class=\"table\"><tbody><tr><td>X Angle</td><td>");
-  body += String(x);
-  body += F(" deg</td></tr><tr><td>Y Angle</td><td>");
-  body += String(y);
-  body += F(" deg</td></tr><tr><td>Z Angle</td><td>");
-  body += String(z);
+  body += F("<h3>MPU9250 Data</h3>");
+  body += F("<table class=\"table\"><tbody><tr><td>Yaw</td><td>");
+  body += String(yaw);
+  body += F(" deg</td></tr><tr><td>Pitch</td><td>");
+  body += String(pitch);
+  body += F(" deg</td></tr><tr><td>Roll</td><td>");
+  body += String(roll);
   body += F(" deg</td></tr><tr><td>Temperature</td><td>");
   body += String(temperature);
   body += F(" C</td></tr></tbody></table><br>");
@@ -183,6 +183,10 @@ void handleInfo() {
   body += F("<h3>Error Counter</h3>");
   body += F("<table class=\"table\"><tbody><tr><td>Wifi Error</td><td>");
   body += String(wifi_error);
+  body += F("</td></tr><tr><td>MPU9250 Found</td><td>");
+  body += String(mpu9250_found);
+  body += F("</td></tr><tr><td>AK8963 Found</td><td>");
+  body += String(ak8963_found);
   body += F("</td></tr><tr><td>MPU Error</td><td>");
   body += String(mpu_error);
   body += F("</td></tr><tr><td>Run Time (minutes)</td><td>");
@@ -237,13 +241,13 @@ void handleConfig() {
   body += password;
   body += F( "\"><br>" );
 
-  body += F( "<h3>MPU6050 Config</h3>"
-             "<label>MPU6050</label>"
+  body += F( "<h3>MPU9250 Config</h3>"
+             "<label>MPU9250</label>"
              "<select name=\"mpu6050_e\">"
              "<option value=\"0\"" );
-  if (mpu6050_enable == 0) body += F( " selected" );
+  if (mpu9250_enable == 0) body += F( " selected" );
   body += F( ">Disable</option><option value=\"1\"" );
-  if (mpu6050_enable == 1) body += F( " selected" );
+  if (mpu9250_enable == 1) body += F( " selected" );
   body += F( ">Enable</option>"
              "</select><br>" );
 
@@ -279,7 +283,7 @@ void handleConfigSave() {
   webServer.arg("n").toCharArray(ssid, sizeof(ssid) - 1);
   webServer.arg("p").toCharArray(password, sizeof(password) - 1);
 
-  mpu6050_enable = webServer.arg("mpu6050_e").toInt();
+  mpu9250_enable = webServer.arg("mpu9250_e").toInt();
   display_enable = webServer.arg("display_e").toInt();
   beep_enable = webServer.arg("beep_e").toInt();
 

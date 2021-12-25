@@ -40,7 +40,6 @@ uint16_t crc16(uint8_t *buffer, uint8_t length)
     return crc;
 }
 
-
 int getRSSIasQuality(int RSSI) {
   int quality = 0;
 
