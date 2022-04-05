@@ -243,13 +243,26 @@ void handleConfig() {
 
   body += F( "<h3>MPU9250 Config</h3>"
              "<label>MPU9250</label>"
-             "<select name=\"mpu6050_e\">"
+             "<select name=\"mpu9250_e\">"
              "<option value=\"0\"" );
   if (mpu9250_enable == 0) body += F( " selected" );
   body += F( ">Disable</option><option value=\"1\"" );
   if (mpu9250_enable == 1) body += F( " selected" );
   body += F( ">Enable</option>"
              "</select><br>" );
+
+  body += F( "<label>Mag bias X</label><input type=\"text\" name=\"m_bias_x\" placeholder=\"0.0\" value=\"" );
+  body += String(m_bias_x);
+  body += F( "\"><br>" );
+  body += F( "<label>Mag bias Y</label><input type=\"text\" name=\"m_bias_y\" placeholder=\"0.0\" value=\"" );
+  body += String(m_bias_y);
+  body += F( "\"><br>" );
+  body += F( "<label>Mag bias Z</label><input type=\"text\" name=\"m_bias_z\" placeholder=\"0.0\" value=\"" );
+  body += String(m_bias_z);
+  body += F( "\"><br>" );
+  body += F( "<label>Declination</label><input type=\"text\" name=\"declination\" placeholder=\"0.0\" value=\"" );
+  body += String(declination);
+  body += F( "\"><br>" );
 
   body += F( "<h3>Display Config</h3>"
              "<label>Display</label>"
@@ -286,6 +299,11 @@ void handleConfigSave() {
   mpu9250_enable = webServer.arg("mpu9250_e").toInt();
   display_enable = webServer.arg("display_e").toInt();
   beep_enable = webServer.arg("beep_e").toInt();
+
+  m_bias_x = webServer.arg("m_bias_x").toFloat();
+  m_bias_y = webServer.arg("m_bias_y").toFloat();
+  m_bias_z = webServer.arg("m_bias_z").toFloat();
+  declination = webServer.arg("declination").toFloat();
 
   webServer.sendHeader("Location", "config", true);
   webServer.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
@@ -367,6 +385,7 @@ void handleReset() {
   webServer.sendHeader("Expires", "-1");
   webServer.send(302, "text/plain", "");    // Empty content inhibits Content-length header so we have to close the socket ourselves.
   webServer.client().stop(); // Stop is needed because we sent no content length
+  ESP.restart();
 }
 
 void handleUpdate() {

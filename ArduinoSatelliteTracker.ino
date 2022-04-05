@@ -57,6 +57,11 @@ uint8_t mpu9250_found = 0;
 uint8_t ak8963_found = 0;
 uint8_t motor_enable = 1;
 
+float m_bias_x = 0.0;
+float m_bias_y = 0.0;
+float m_bias_z = 0.0;
+float declination = -2.57;  // Cainta // dd = d + m/60 + s/3600
+
 uint16_t wifi_error = 0;
 uint16_t mpu_error = 0;
 
@@ -89,9 +94,17 @@ void loadConfig() {
   EEPROM.get(65, display_enable); // 1
   // BEEP part
   EEPROM.get(66, beep_enable); // 1
+  // Mag Bias X
+  EEPROM.get(67, m_bias_x); // 4
+  // Mag Bias Y
+  EEPROM.get(71, m_bias_y); // 4
+  // Mag Bias Z
+  EEPROM.get(75, m_bias_z); // 4
+  // Declination
+  EEPROM.get(79, declination); // 4
 
   char ok[3];
-  EEPROM.get(67, ok);
+  EEPROM.get(83, ok);
   EEPROM.end();
   
   if (String(ok) != String("OK")) {
@@ -100,6 +113,10 @@ void loadConfig() {
     mpu9250_enable = 0;
     display_enable = 0;
     beep_enable = 0;
+    m_bias_x = 0.0;
+    m_bias_y = 0.0;
+    m_bias_z = 0.0;
+    declination = -2.57;
   }
 }
 
@@ -116,9 +133,17 @@ void saveConfig() {
   EEPROM.put(65, display_enable); // 1
   // BEEP part
   EEPROM.put(66, beep_enable); // 1
+  // Mag Bias X
+  EEPROM.put(67, m_bias_x); // 4
+  // Mag Bias Y
+  EEPROM.put(71, m_bias_y); // 4
+  // Mag Bias Z
+  EEPROM.put(75, m_bias_z); // 4
+  // Declination
+  EEPROM.put(79, declination); // 4
 
   char ok[3] = "OK";
-  EEPROM.put(67, ok);
+  EEPROM.put(83, ok);
   EEPROM.commit();
   EEPROM.end();
 }

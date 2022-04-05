@@ -256,16 +256,16 @@ void mpu9250Loop() {
     readAccelData(accelCount);  // Read the x/y/z adc values
     getAres();
     // Now we'll calculate the accleration value into actual g's
-    AX = (float)accelCount[0]*aRes; // - aBias[0];  // get actual g value, this depends on scale being set
-    AY = (float)accelCount[1]*aRes; // - aBias[1];
-    AZ = (float)accelCount[2]*aRes; // - aBias[2];
+    AX = (float)accelCount[0] * aRes; // - aBias[0];  // get actual g value, this depends on scale being set
+    AY = (float)accelCount[1] * aRes; // - aBias[1];
+    AZ = (float)accelCount[2] * aRes; // - aBias[2];
 
     readGyroData(gyroCount);  // Read the x/y/z adc values
     getGres();
     // Calculate the gyro value into actual degrees per second
-    GX = (float)gyroCount[0]*gRes;  // get actual gyro value, this depends on scale being set
-    GY = (float)gyroCount[1]*gRes;
-    GZ = (float)gyroCount[2]*gRes;
+    GX = (float)gyroCount[0] * gRes;  // get actual gyro value, this depends on scale being set
+    GY = (float)gyroCount[1] * gRes;
+    GZ = (float)gyroCount[2] * gRes;
 
     readMagData(magCount);  // Read the x/y/z adc values
     getMres();
@@ -274,58 +274,14 @@ void mpu9250Loop() {
     //mBias[2] = +125.;  // User environmental x-axis correction in milliGauss
     // Calculate the magnetometer values in milliGauss
     // Include factory calibration per data sheet and user environmental corrections
-    MX = (float)magCount[0]*mRes*mCal[0] - mBias[0];  // get actual magnetometer value, this depends on scale being set
-    MY = (float)magCount[1]*mRes*mCal[1] - mBias[1];
-    MZ = (float)magCount[2]*mRes*mCal[2] - mBias[2];
-
-    /*
-    I2Cread(MPU9250_ADDRESS, 0x3B, 14, Buf);
-    
-    AX = Buf[0] << 8 | Buf[1];
-    AY = Buf[2] << 8 | Buf[3];
-    AZ = Buf[4] << 8 | Buf[5];
-    TP = Buf[6] << 8 | Buf[7];
-    GX = Buf[8] << 8 | Buf[9];
-    GY = Buf[10] << 8 | Buf[11];
-    GZ = Buf[12] << 8 | Buf[13];
-  
-    AX *= aRes;
-    AY *= aRes;
-    AZ *= aRes;
-  
-    GX *= gRes;
-    GY *= gRes;
-    GZ *= gRes;
-
-    I2Cread(AK8963_ADDRESS, AK8963_ST1, 1, Buf);
-    if (Buf[0] & 0x01) {
-      I2Cread(AK8963_ADDRESS, EXT_SENS_DATA_00, 7, Buf);
-      if (!(Buf[6] & 0x08)) {
-        MX = Buf[1] << 8 | Buf[0];
-        MY = Buf[3] << 8 | Buf[2];
-        MZ = Buf[5] << 8 | Buf[4];
-      
-        MX = MX * mRes * mCal[0] + 451.95;
-        MY = MY * mRes * mCal[1] + 550.21;
-        MZ = MZ * mRes * mCal[2] + 451.95;
-      }
-    }
-
-    temperature = ((float) TP) / 333.87 + 21.0;
-    */
-
-    //int xAng = map(AX, minVal, maxVal, -90, 90);
-    //int yAng = map(AY, minVal, maxVal, -90, 90);
-    //int zAng = map(AZ, minVal, maxVal, -90, 90);
-  
-    //yaw = RAD_TO_DEG * (atan2(-yAng, -zAng) + PI); // yaw
-    //pitch = RAD_TO_DEG * (atan2(-xAng, -zAng) + PI); // pitch
-    //roll = RAD_TO_DEG * (atan2(-yAng, -xAng) + PI); // roll
-    //if (pitch > 90.0) roll = 360 - roll;
-    //x = atan2(xAng, yAng) * 180 / PI;
-    //if (motor_mode == 3 && pitch > 165 ) motor_mode = 0; // stop the rotator
-    //if (motor_mode == 4 && pitch < 15) motor_mode = 0; // stop the rotator
+    //MX = (float)magCount[0] * mRes * mCal[0] - mBias[0];  // get actual magnetometer value, this depends on scale being set
+    //MY = (float)magCount[1] * mRes * mCal[1] - mBias[1];
+    //MZ = (float)magCount[2] * mRes * mCal[2] - mBias[2];
+    MX = (float)magCount[0] * mRes * mCal[0] + m_bias_x;  // get actual magnetometer value, this depends on scale being set
+    MY = (float)magCount[1] * mRes * mCal[1] + m_bias_y;
+    MZ = (float)magCount[2] * mRes * mCal[2] + m_bias_z;
   }
+
   Now = micros();
   deltat = ((Now - lastUpdate)/1000000.0f); // set integration time by time elapsed since last filter update
   lastUpdate = Now;
@@ -333,64 +289,29 @@ void mpu9250Loop() {
   sum += deltat; // sum for averaging filter update rate
   sumCount++;
 
-  //MadgwickQuaternionUpdate(AX, AY, AZ, GX*PI/180.0f, GY*PI/180.0f, GZ*PI/180.0f, MY, MX, MZ);
-  MahonyQuaternionUpdate(AX, AY, AZ, GX*PI/180.0f, GY*PI/180.0f, GZ*PI/180.0f, MY, MX, MZ);
+  MadgwickQuaternionUpdate(AX, AY, AZ, GX*PI/180.0f, GY*PI/180.0f, GZ*PI/180.0f, MY, MX, MZ);
+  //MahonyQuaternionUpdate(AX, AY, AZ, GX*PI/180.0f, GY*PI/180.0f, GZ*PI/180.0f, MY, MX, MZ);
 
-  yaw   = atan2(2.0f * (q[1] * q[2] + q[0] * q[3]), q[0] * q[0] + q[1] * q[1] - q[2] * q[2] - q[3] * q[3]);
-  pitch = -asin(2.0f * (q[1] * q[3] - q[0] * q[2]));
-  roll  = atan2(2.0f * (q[0] * q[1] + q[2] * q[3]), q[0] * q[0] - q[1] * q[1] - q[2] * q[2] + q[3] * q[3]);
-  pitch *= 180.0f / PI;
-  yaw   *= 180.0f / PI;
-  roll  *= 180.0f / PI;
-  yaw   += 1.34; // Declination at Danville, California is 13 degrees 48 minutes and 47 seconds on 2014-04-04
-
-  yaw = yaw + 180;
-
-  tempCount = readTempData();  // Read the adc values
-  temperature = ((float) tempCount) / 333.87 + 21.0; // Temperature in degrees Centigrade
-        
-    /*
-    Wire.beginTransmission(MPU_addr);
-    Wire.write(0x3B);
-    Wire.endTransmission(false);
-    if (Wire.endTransmission() == 0) {
-      Wire.requestFrom(MPU_addr, 14);
-    
-      int16_t AX = Wire.read()<<8|Wire.read();
-      int16_t AY = Wire.read()<<8|Wire.read();
-      int16_t AZ = Wire.read()<<8|Wire.read();
-      int16_t Tp = Wire.read()<<8|Wire.read();
-      int16_t GX = Wire.read()<<8|Wire.read();
-      int16_t GY = Wire.read()<<8|Wire.read();
-      int16_t GZ = Wire.read()<<8|Wire.read();
-      
-      // mpu6050
-      //temperature = ((float)Tmp) / 340.0 + 36.53;
-      //temperature = ((double)Tmp + 12412.0) / 340.0;
-      // mpu9250
-      temperature = ((float) Tp) / 333.87 + 21.0;
-    
-      int xAng = map(AX, minVal, maxVal, -90, 90);
-      int yAng = map(AY, minVal, maxVal, -90, 90);
-      int zAng = map(AZ, minVal, maxVal, -90, 90);
-    
-      yaw = RAD_TO_DEG * (atan2(-yAng, -zAng) + PI); // yaw
-      pitch = RAD_TO_DEG * (atan2(-xAng, -zAng) + PI); // pitch
-      roll = RAD_TO_DEG * (atan2(-yAng, -xAng) + PI); // roll
-      //if (pitch > 90.0) roll = 360 - roll;
-      //x = atan2(xAng, yAng) * 180 / PI;
-      if (motor_mode == 3 && pitch > 165 ) motor_mode = 0; // stop the rotator
-      if (motor_mode == 4 && pitch < 15) motor_mode = 0; // stop the rotator
+  // data proc
+  delt_t = millis() - count;
+  if (delt_t > 50) { // update LCD once per half-second independent of read rate
+    yaw   = atan2(2.0f * (q[1] * q[2] + q[0] * q[3]), q[0] * q[0] + q[1] * q[1] - q[2] * q[2] - q[3] * q[3]);
+    pitch = -asin(2.0f * (q[1] * q[3] - q[0] * q[2]));
+    roll  = atan2(2.0f * (q[0] * q[1] + q[2] * q[3]), q[0] * q[0] - q[1] * q[1] - q[2] * q[2] + q[3] * q[3]);
+    pitch *= 180.0f / PI;
+    yaw   *= 180.0f / PI;
+    yaw   += declination;
+    roll  *= 180.0f / PI;
   
-      //pitch = atan2 (AcY ,( sqrt ((AcX * AcX) + (AcZ * AcZ))));
-      //roll = atan2(-AcX ,( sqrt((AcY * AcY) + (AcZ * AcZ))));
-      //roll = roll * 57.3;
-      //pitch = pitch * 57.3;
-    }
-    else {
-      mpu_error++;
-    }
-    */
+    yaw = yaw + 180;
+  
+    tempCount = readTempData();  // Read the adc values
+    temperature = ((float) tempCount) / 333.87 + 21.0; // Temperature in degrees Centigrade
+
+    count = millis();
+    sumCount = 0;
+    sum = 0;
+  }
 }
 
 //===================================================================================================================
