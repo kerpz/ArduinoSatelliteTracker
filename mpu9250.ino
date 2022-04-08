@@ -159,25 +159,25 @@ enum Mscale {
   MFS_16BITS      // 0.15 mG per LSB
 };
 
-int16_t accelCount[3];  // Stores the 16-bit signed accelerometer sensor output
-int16_t gyroCount[3];   // Stores the 16-bit signed gyro sensor output
-int16_t magCount[3];    // Stores the 16-bit signed magnetometer sensor output
-int16_t tempCount;      // temperature raw count output
-
-float mCal[3] = {0, 0, 0}; // Factory mag calibration and mag bias
-float mBias[3] = {0, 0, 0};
-float gBias[3] = {0, 0, 0};
-float aBias[3] = {0, 0, 0};
-
 // Specify sensor full scale
 uint8_t Ascale = AFS_2G;
 uint8_t Gscale = GFS_250DPS;
 uint8_t Mscale = MFS_16BITS; // Choose either 14-bit or 16-bit magnetometer resolution
 uint8_t Mmode = 0x02;        // 2 for 8 Hz, 6 for 100 Hz continuous magnetometer data read
 float aRes, gRes, mRes;      // scale resolutions per LSB for the sensors
-//float aRes = 2.0 / 32768.0;
-//float gRes = 250.0 / 32768.0;
-//float mRes = 10.*4912. / 32760.0;
+
+int16_t accelCount[3];  // Stores the 16-bit signed accelerometer sensor output
+int16_t gyroCount[3];   // Stores the 16-bit signed gyro sensor output
+int16_t magCount[3];    // Stores the 16-bit signed magnetometer sensor output
+int16_t tempCount;      // temperature raw count output
+
+float mCal[3] = {0, 0, 0}; // Factory mag calibration and mag bias
+float mScale[3] = {0.79, 1.01, 1.35};
+float mBias[3] = {311.07, 72.39, -67.16};
+float gBias[3] = {-2.55, 2.66, -0.94};
+float aBias[3] = {-164.37, -155.40, -13.37};
+
+float   SelfTest[6];    // holds results of gyro and accelerometer self test
 
 float GyroMeasError = PI * (40.0f / 180.0f);   // gyroscope measurement error in rads/s (start at 40 deg/s)
 float GyroMeasDrift = PI * (0.0f  / 180.0f);   // gyroscope measurement drift in rad/s/s (start at 0.0 deg/s/s)
@@ -225,20 +225,49 @@ void mpu9250Setup() {
   I2Cread(MPU9250_ADDRESS, WHO_AM_I_MPU9250, 1, Buf);
   if (Buf[0] == 0x71) {
     mpu9250_found = 1;
-    
-    //MPU9250SelfTest(SelfTest); // Start by performing self test and reporting values
+    Serial.println("MPU9250 is online...");
 
+    I2Cwrite(MPU9250_ADDRESS, PWR_MGMT_1, 0x80); // Set bit 7 to reset MPU9250
+    delay(100);
+    
+    mpu9250SelfTest(SelfTest); // Start by performing self test and reporting values
+    Serial.print("x-axis self test: acceleration trim within : "); Serial.print(SelfTest[0],1); Serial.println("% of factory value");
+    Serial.print("y-axis self test: acceleration trim within : "); Serial.print(SelfTest[1],1); Serial.println("% of factory value");
+    Serial.print("z-axis self test: acceleration trim within : "); Serial.print(SelfTest[2],1); Serial.println("% of factory value");
+    Serial.print("x-axis self test: gyration trim within : "); Serial.print(SelfTest[3],1); Serial.println("% of factory value");
+    Serial.print("y-axis self test: gyration trim within : "); Serial.print(SelfTest[4],1); Serial.println("% of factory value");
+    Serial.print("z-axis self test: gyration trim within : "); Serial.print(SelfTest[5],1); Serial.println("% of factory value");
+
+    getAres();
+    getGres();
+    getMres();
+
+    // Comment out if using pre-measured, pre-stored offset biases
     mpu9250Calibrate(gBias, aBias); // Calibrate gyro and accelerometers, load biases in bias registers
+    Serial.println("accel biases (mg)"); Serial.println(1000.0 * aBias[0]); Serial.println(1000.0 * aBias[1]); Serial.println(1000.0 * aBias[2]);
+    Serial.println("gyro biases (dps)"); Serial.println(gBias[0]); Serial.println(gBias[1]); Serial.println(gBias[2]);
+    delay(1000);
+
     mpu9250Init();
+    Serial.println("MPU9250 initialized for active data mode...."); // Initialize device for active mode read of acclerometer, gyroscope, and temperature
 
     I2Cread(AK8963_ADDRESS, WHO_AM_I_AK8963, 1, Buf);
     if (Buf[0] == 0x48) {
       ak8963_found = 1;
+      delay(1000);
       ak8963Init(mCal);
+      Serial.println("AK8963 initialized for active data mode...."); // Initialize device for active mode read of magnetometer
 
-      //; Serial.println("AK8963 initialized for active data mode...."); // Initialize device for active mode read of magnetometer
-      //getMres();
-      // magcalMPU9250(magBias, magScale);
+      // Comment out if using pre-measured, pre-stored offset biases
+      //mpu9250MagCal(mBias, mScale);
+      //Serial.println("AK8963 mag biases (mG)"); Serial.println(mBias[0]); Serial.println(mBias[1]); Serial.println(mBias[2]); 
+      //Serial.println("AK8963 mag scale (mG)"); Serial.println(mScale[0]); Serial.println(mScale[1]); Serial.println(mScale[2]); 
+      //delay(2000); // add delay to see results before serial spew of data
+
+      //  Serial.println("Calibration values: ");
+      Serial.print("X-Axis sensitivity adjustment value "); Serial.println(mCal[0], 2);
+      Serial.print("Y-Axis sensitivity adjustment value "); Serial.println(mCal[1], 2);
+      Serial.print("Z-Axis sensitivity adjustment value "); Serial.println(mCal[2], 2);
     }
   }
     
@@ -254,21 +283,18 @@ void mpu9250Loop() {
   I2Cread(MPU9250_ADDRESS, INT_STATUS, 1, Buf);
   if (Buf[0] & 0x01) {
     readAccelData(accelCount);  // Read the x/y/z adc values
-    getAres();
     // Now we'll calculate the accleration value into actual g's
     AX = (float)accelCount[0] * aRes; // - aBias[0];  // get actual g value, this depends on scale being set
     AY = (float)accelCount[1] * aRes; // - aBias[1];
     AZ = (float)accelCount[2] * aRes; // - aBias[2];
 
     readGyroData(gyroCount);  // Read the x/y/z adc values
-    getGres();
     // Calculate the gyro value into actual degrees per second
     GX = (float)gyroCount[0] * gRes;  // get actual gyro value, this depends on scale being set
     GY = (float)gyroCount[1] * gRes;
     GZ = (float)gyroCount[2] * gRes;
 
     readMagData(magCount);  // Read the x/y/z adc values
-    getMres();
     //mBias[0] = +470.;  // User environmental x-axis correction in milliGauss, should be automatically calculated
     //mBias[1] = +120.;  // User environmental x-axis correction in milliGauss
     //mBias[2] = +125.;  // User environmental x-axis correction in milliGauss
@@ -280,6 +306,9 @@ void mpu9250Loop() {
     MX = (float)magCount[0] * mRes * mCal[0] + m_bias_x;  // get actual magnetometer value, this depends on scale being set
     MY = (float)magCount[1] * mRes * mCal[1] + m_bias_y;
     MZ = (float)magCount[2] * mRes * mCal[2] + m_bias_z;
+    //MX *= mScale[0];
+    //MY *= mScale[1];
+    //MZ *= mScale[2];
   }
 
   Now = micros();
@@ -301,13 +330,19 @@ void mpu9250Loop() {
     pitch *= 180.0f / PI;
     yaw   *= 180.0f / PI;
     yaw   += declination;
+    //if (yaw < 0) yaw += 360.0f; // Ensure yaw stays between 0 and 360
     roll  *= 180.0f / PI;
-  
-    yaw = yaw + 180;
   
     tempCount = readTempData();  // Read the adc values
     temperature = ((float) tempCount) / 333.87 + 21.0; // Temperature in degrees Centigrade
 
+    //Serial.print("Yaw, Pitch, Roll: ");
+    //Serial.print(yaw, 2);
+    //Serial.print(", ");
+    //Serial.print(pitch, 2);
+    //Serial.print(", ");
+    //Serial.println(roll, 2);
+    
     count = millis();
     sumCount = 0;
     sum = 0;
@@ -431,7 +466,7 @@ void mpu9250Init() {
 
   I2Cread(MPU9250_ADDRESS, GYRO_CONFIG, 1, Buf); // get current GYRO_CONFIG register value
   //Buf[0] = Buf[0] & ~0xE0; // Clear self-test bits [7:5]
-  Buf[0] = Buf[0] & ~0x03; // Clear Fchoice bits [1:0]
+  Buf[0] = Buf[0] & ~0x02; // Clear Fchoice bits [1:0] // 0x03
   Buf[0] = Buf[0] & ~0x18; // Clear GFS bits [4:3]
   Buf[0] = Buf[0] | Gscale << 3; // Set full scale range for the gyro
   I2Cwrite(MPU9250_ADDRESS, GYRO_CONFIG, Buf[0]); // Write new GYRO_CONFIG value to register
@@ -448,9 +483,14 @@ void mpu9250Init() {
   I2Cwrite(MPU9250_ADDRESS, ACCEL_CONFIG2, Buf[0]); // Write new ACCEL_CONFIG2 register value
 
   // enable ak8963
-  I2Cwrite(MPU9250_ADDRESS, INT_PIN_CFG, 0x22);
+  I2Cwrite(MPU9250_ADDRESS, INT_PIN_CFG, 0x22); // 0x10
   I2Cwrite(MPU9250_ADDRESS, INT_ENABLE, 0x01); // Enable data ready (bit 0) interrupt
   delay(100);
+
+  //I2Cwrite(MPU9250_ADDRESS, USER_CTRL, 0x20);          // Enable I2C Master mode  
+  //I2Cwrite(MPU9250_ADDRESS, I2C_MST_CTRL, 0x1D);       // I2C configuration STOP after each transaction, master I2C bus at 400 KHz
+  //I2Cwrite(MPU9250_ADDRESS, I2C_MST_DELAY_CTRL, 0x81); // Use blocking data retreival and enable delay for mag sample rate mismatch
+  //I2Cwrite(MPU9250_ADDRESS, I2C_SLV4_CTRL, 0x01);      // Delay mag data retrieval to on
 }
 
 void mpu9250Calibrate(float * dest1, float * dest2)
@@ -603,6 +643,146 @@ void mpu9250Calibrate(float * dest1, float * dest2)
   dest2[1] = (float)accel_bias[1] / (float)accelsensitivity;
   dest2[2] = (float)accel_bias[2] / (float)accelsensitivity;
 }
+
+void mpu9250MagCal(float * dest1, float * dest2) 
+{
+  uint16_t ii = 0, sample_count = 0;
+  int32_t mag_bias[3] = {0, 0, 0}, mag_scale[3] = {0, 0, 0};
+  int16_t mag_max[3] = {-32767, -32767, -32767}, mag_min[3] = {32767, 32767, 32767}, mag_temp[3] = {0, 0, 0};
+
+  Serial.println("Mag Calibration: Wave device in a figure eight until done!");
+  delay(4000);
+  
+  // shoot for ~fifteen seconds of mag data
+  if(Mmode == 0x02) sample_count = 128;  // at 8 Hz ODR, new mag data is available every 125 ms
+  if(Mmode == 0x06) sample_count = 1500;  // at 100 Hz ODR, new mag data is available every 10 ms
+  for(ii = 0; ii < sample_count; ii++) {
+    readMagData(mag_temp);  // Read the mag data   
+    for (int jj = 0; jj < 3; jj++) {
+      if(mag_temp[jj] > mag_max[jj]) mag_max[jj] = mag_temp[jj];
+      if(mag_temp[jj] < mag_min[jj]) mag_min[jj] = mag_temp[jj];
+    }
+    if(Mmode == 0x02) delay(135);  // at 8 Hz ODR, new mag data is available every 125 ms
+    if(Mmode == 0x06) delay(12);  // at 100 Hz ODR, new mag data is available every 10 ms
+  }
+
+  //Serial.println("mag x min/max:"); Serial.println(mag_max[0]); Serial.println(mag_min[0]);
+  //Serial.println("mag y min/max:"); Serial.println(mag_max[1]); Serial.println(mag_min[1]);
+  //Serial.println("mag z min/max:"); Serial.println(mag_max[2]); Serial.println(mag_min[2]);
+
+  // Get hard iron correction
+  mag_bias[0]  = (mag_max[0] + mag_min[0])/2;  // get average x mag bias in counts
+  mag_bias[1]  = (mag_max[1] + mag_min[1])/2;  // get average y mag bias in counts
+  mag_bias[2]  = (mag_max[2] + mag_min[2])/2;  // get average z mag bias in counts
+  
+  dest1[0] = (float) mag_bias[0] * mRes * mCal[0];  // save mag biases in G for main program
+  dest1[1] = (float) mag_bias[1] * mRes * mCal[1];   
+  dest1[2] = (float) mag_bias[2] * mRes * mCal[2];  
+   
+  // Get soft iron correction estimate
+  mag_scale[0]  = (mag_max[0] - mag_min[0])/2;  // get average x axis max chord length in counts
+  mag_scale[1]  = (mag_max[1] - mag_min[1])/2;  // get average y axis max chord length in counts
+  mag_scale[2]  = (mag_max[2] - mag_min[2])/2;  // get average z axis max chord length in counts
+  
+  float avg_rad = mag_scale[0] + mag_scale[1] + mag_scale[2];
+  avg_rad /= 3.0;
+  
+  dest2[0] = avg_rad/((float)mag_scale[0]);
+  dest2[1] = avg_rad/((float)mag_scale[1]);
+  dest2[2] = avg_rad/((float)mag_scale[2]);
+  
+  Serial.println("Mag Calibration done!");
+}
+
+// Accelerometer and gyroscope self test; check calibration wrt factory settings
+void mpu9250SelfTest(float * destination) // Should return percent deviation from factory trim values, +/- 14 or less deviation is a pass
+{
+  uint8_t rawData[6] = {0, 0, 0, 0, 0, 0};
+  uint8_t selfTest[6];
+  int32_t gAvg[3] = {0}, aAvg[3] = {0}, aSTAvg[3] = {0}, gSTAvg[3] = {0};
+  float factoryTrim[6];
+  uint8_t FS = 0;
+   
+  I2Cwrite(MPU9250_ADDRESS, SMPLRT_DIV, 0x00);    // Set gyro sample rate to 1 kHz
+  I2Cwrite(MPU9250_ADDRESS, CONFIG, 0x02);        // Set gyro sample rate to 1 kHz and DLPF to 92 Hz
+  I2Cwrite(MPU9250_ADDRESS, GYRO_CONFIG, FS<<3);  // Set full scale range for the gyro to 250 dps
+  I2Cwrite(MPU9250_ADDRESS, ACCEL_CONFIG2, 0x02); // Set accelerometer rate to 1 kHz and bandwidth to 92 Hz
+  I2Cwrite(MPU9250_ADDRESS, ACCEL_CONFIG, FS<<3); // Set full scale range for the accelerometer to 2 g
+
+  for( int ii = 0; ii < 200; ii++) {  // get average current values of gyro and acclerometer
+    I2Cread(MPU9250_ADDRESS, ACCEL_XOUT_H, 6, &rawData[0]);        // Read the six raw data registers into data array
+    aAvg[0] += (int16_t)(((int16_t)rawData[0] << 8) | rawData[1]) ;  // Turn the MSB and LSB into a signed 16-bit value
+    aAvg[1] += (int16_t)(((int16_t)rawData[2] << 8) | rawData[3]) ;  
+    aAvg[2] += (int16_t)(((int16_t)rawData[4] << 8) | rawData[5]) ; 
+    
+    I2Cread(MPU9250_ADDRESS, GYRO_XOUT_H, 6, &rawData[0]);       // Read the six raw data registers sequentially into data array
+    gAvg[0] += (int16_t)(((int16_t)rawData[0] << 8) | rawData[1]) ;  // Turn the MSB and LSB into a signed 16-bit value
+    gAvg[1] += (int16_t)(((int16_t)rawData[2] << 8) | rawData[3]) ;  
+    gAvg[2] += (int16_t)(((int16_t)rawData[4] << 8) | rawData[5]) ; 
+  }
+  
+  for (int ii =0; ii < 3; ii++) {  // Get average of 200 values and store as average current readings
+    aAvg[ii] /= 200;
+    gAvg[ii] /= 200;
+  }
+  
+  // Configure the accelerometer for self-test
+  I2Cwrite(MPU9250_ADDRESS, ACCEL_CONFIG, 0xE0); // Enable self test on all three axes and set accelerometer range to +/- 2 g
+  I2Cwrite(MPU9250_ADDRESS, GYRO_CONFIG,  0xE0); // Enable self test on all three axes and set gyro range to +/- 250 degrees/s
+  delay(25);  // Delay a while to let the device stabilize
+
+  for( int ii = 0; ii < 200; ii++) {  // get average self-test values of gyro and acclerometer
+    I2Cread(MPU9250_ADDRESS, ACCEL_XOUT_H, 6, &rawData[0]);  // Read the six raw data registers into data array
+    aSTAvg[0] += (int16_t)(((int16_t)rawData[0] << 8) | rawData[1]) ;  // Turn the MSB and LSB into a signed 16-bit value
+    aSTAvg[1] += (int16_t)(((int16_t)rawData[2] << 8) | rawData[3]) ;  
+    aSTAvg[2] += (int16_t)(((int16_t)rawData[4] << 8) | rawData[5]) ; 
+    
+    I2Cread(MPU9250_ADDRESS, GYRO_XOUT_H, 6, &rawData[0]);  // Read the six raw data registers sequentially into data array
+    gSTAvg[0] += (int16_t)(((int16_t)rawData[0] << 8) | rawData[1]) ;  // Turn the MSB and LSB into a signed 16-bit value
+    gSTAvg[1] += (int16_t)(((int16_t)rawData[2] << 8) | rawData[3]) ;  
+    gSTAvg[2] += (int16_t)(((int16_t)rawData[4] << 8) | rawData[5]) ; 
+  }
+  
+  for (int ii =0; ii < 3; ii++) {  // Get average of 200 values and store as average self-test readings
+    aSTAvg[ii] /= 200;
+    gSTAvg[ii] /= 200;
+  }   
+  
+  // Configure the gyro and accelerometer for normal operation
+  I2Cwrite(MPU9250_ADDRESS, ACCEL_CONFIG, 0x00);  
+  I2Cwrite(MPU9250_ADDRESS, GYRO_CONFIG,  0x00);  
+  delay(25);  // Delay a while to let the device stabilize
+   
+  // Retrieve accelerometer and gyro factory Self-Test Code from USR_Reg
+  I2Cread(MPU9250_ADDRESS, SELF_TEST_X_ACCEL, 1, &rawData[0]);
+  selfTest[0] = rawData[0]; // X-axis accel self-test results
+  I2Cread(MPU9250_ADDRESS, SELF_TEST_Y_ACCEL, 1, &rawData[0]);
+  selfTest[1] = rawData[0]; // Y-axis accel self-test results
+  I2Cread(MPU9250_ADDRESS, SELF_TEST_Z_ACCEL, 1, &rawData[0]);
+  selfTest[2] = rawData[0]; // Z-axis accel self-test results
+  I2Cread(MPU9250_ADDRESS, SELF_TEST_X_GYRO, 1, &rawData[0]);
+  selfTest[3] = rawData[0];  // X-axis gyro self-test results
+  I2Cread(MPU9250_ADDRESS, SELF_TEST_Y_GYRO, 1, &rawData[0]);
+  selfTest[4] = rawData[0];  // Y-axis gyro self-test results
+  I2Cread(MPU9250_ADDRESS, SELF_TEST_Z_GYRO, 1, &rawData[0]);
+  selfTest[5] = rawData[0];  // Z-axis gyro self-test results
+
+  // Retrieve factory self-test value from self-test code reads
+  factoryTrim[0] = (float)(2620/1<<FS)*(pow( 1.01 , ((float)selfTest[0] - 1.0) )); // FT[Xa] factory trim calculation
+  factoryTrim[1] = (float)(2620/1<<FS)*(pow( 1.01 , ((float)selfTest[1] - 1.0) )); // FT[Ya] factory trim calculation
+  factoryTrim[2] = (float)(2620/1<<FS)*(pow( 1.01 , ((float)selfTest[2] - 1.0) )); // FT[Za] factory trim calculation
+  factoryTrim[3] = (float)(2620/1<<FS)*(pow( 1.01 , ((float)selfTest[3] - 1.0) )); // FT[Xg] factory trim calculation
+  factoryTrim[4] = (float)(2620/1<<FS)*(pow( 1.01 , ((float)selfTest[4] - 1.0) )); // FT[Yg] factory trim calculation
+  factoryTrim[5] = (float)(2620/1<<FS)*(pow( 1.01 , ((float)selfTest[5] - 1.0) )); // FT[Zg] factory trim calculation
+  
+  // Report results as a ratio of (STR - FT)/FT; the change from Factory Trim of the Self-Test Response
+  // To get percent, must multiply by 100
+  for (int i = 0; i < 3; i++) {
+    destination[i]   = 100.0*((float)(aSTAvg[i] - aAvg[i]))/factoryTrim[i] - 100.;   // Report percent differences
+    destination[i+3] = 100.0*((float)(gSTAvg[i] - gAvg[i]))/factoryTrim[i+3] - 100.; // Report percent differences
+  }
+}
+
 void ak8963Init(float * destination)
 {
   // First extract the factory calibration for each magnetometer axis
@@ -612,9 +792,9 @@ void ak8963Init(float * destination)
   I2Cwrite(AK8963_ADDRESS, AK8963_CNTL, 0x0F); // Enter Fuse ROM access mode
   delay(10);
   I2Cread(AK8963_ADDRESS, AK8963_ASAX, 3, &rawData[0]);  // Read the x-, y-, and z-axis calibration values
-  destination[0] =  (float)(rawData[0] - 128)/256. + 1.;   // Return x-axis sensitivity adjustment values, etc.
-  destination[1] =  (float)(rawData[1] - 128)/256. + 1.;  
-  destination[2] =  (float)(rawData[2] - 128)/256. + 1.; 
+  destination[0] =  (float)(rawData[0] - 128) / 256.0 + 1.;   // Return x-axis sensitivity adjustment values, etc.
+  destination[1] =  (float)(rawData[1] - 128) / 256.0 + 1.;  
+  destination[2] =  (float)(rawData[2] - 128) / 256.0 + 1.; 
   I2Cwrite(AK8963_ADDRESS, AK8963_CNTL, 0x00); // Power down magnetometer  
   delay(10);
   // Configure the magnetometer for continuous read and highest resolution

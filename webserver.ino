@@ -347,6 +347,17 @@ void handleControl() {
              "<button class=\"btn\" type=\"submit\">Submit</button>"
              "</form>"
 */
+  body += F("<h3>MPU9250 Data</h3>");
+  body += F("<table class=\"table\"><tbody><tr><td>Yaw</td><td>");
+  body += String(yaw);
+  body += F(" deg</td></tr><tr><td>Pitch</td><td>");
+  body += String(pitch);
+  body += F(" deg</td></tr><tr><td>Roll</td><td>");
+  body += String(roll);
+  body += F(" deg</td></tr><tr><td>Temperature</td><td>");
+  body += String(temperature);
+  body += F(" C</td></tr></tbody></table><br>");
+
   body += F( "<table class=\"table\"><tbody><tr><td>"
              "<form method=\"post\" action=\"/control\">"
              "<input type=\"hidden\" name=\"motor_m\" value=\"2\">"

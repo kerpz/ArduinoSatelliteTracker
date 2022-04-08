@@ -6,8 +6,8 @@
  - Wemos D1 mini (Compatible board)
  
  Software:
- - Arduino 1.8.12 (Stable)
- - Board 2.7.1, payload bug empty
+ - Arduino 1.8.19 (Stable)
+ - Board 3.0.2
  https://github.com/shubhampaul/Real_Time_Planet_Tracking_System
 */
 
@@ -154,7 +154,7 @@ void execEvery(int ms) {
   if (millis() - msTick >= ms) { // run every N ms
     msTick = millis();
 
-    //if (display_enable) displayLoop();
+    if (display_enable) displayLoop();
     //if (mpu6050_enable) mpu6050Loop();
     //if (motor_enable) motorLoop();
     
