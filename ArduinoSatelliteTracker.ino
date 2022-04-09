@@ -29,7 +29,7 @@
 
 #define APPNAME "SatelliteTracker v1.0"
 
-#define APssid "SatelliteTracker-AP"
+#define APssid "SatelliteTracker-AP2"
 #define APpassword  "12345678"
 
 char ssid[32] = "";
