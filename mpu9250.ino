@@ -167,13 +167,30 @@ uint8_t Mmode = 0x02;        // 2 for 8 Hz, 6 for 100 Hz continuous magnetometer
 float aRes, gRes, mRes; // scale
 
 // vvvvvvvvvvvvvvvvvv  VERY VERY IMPORTANT vvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-//These are the previously determined offsets and scale factors for accelerometer and magnetometer, using MPU9250_cal and Magneto 1.2
-//
-//The scale constants should *approximately* normalize the vector magnitude for accel and mag to 1.0
+//These are the previously determined offsets and correction factors for accelerometer and magnetometer, using MPU9250_cal and Magneto 1.2
 //The AHRS will NOT work well or at all if these are not correct
+//
+// redetermined 12/25/2020 (0 rejected)
+//acel offsets and correction matrix
+float A_B[3]
+{  565.83,  195.43,  848.90};
 
-float A_cal[6] = {515.0, 279.0, 751.0, 5.96e-5, 6.26e-5, 6.06e-5}; // 0..2 offset xyz, 3..5 scale xyz
-float M_cal[6] = {18.0, 28.3, -39.6, 0.01403, 0.01414, 0.01387}; // can make both 3x3 to handle off-diagonal corrections
+float A_Ainv[3][3]
+{ {  1.00380, -0.00143,  0.00704},
+  { -0.00143,  1.00976, -0.00026},
+  {  0.00704, -0.00026,  0.98564}
+};
+
+// mag offsets and correction matrix
+float M_B[3]
+{   17.22,   28.11,  -39.81};
+
+float M_Ainv[3][3]
+{ {  1.19679,  0.00488,  0.00902},
+  {  0.00488,  1.20826,  0.00392},
+  {  0.00902,  0.00392,  1.21853}
+};
+
 float G_off[3] = { 213.3, -45.5, -72.1}; //raw offsets, determined for gyro at rest
 // ^^^^^^^^^^^^^^^^^^^ VERY VERY IMPORTANT ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 float mCal[3] = {0.0, 0.0, 0.0}; // default ?
@@ -302,6 +319,8 @@ void mpu9250Setup() {
 }
 
 void mpu9250Loop() {
+  float temp[3];
+  
   uint8_t Buf[14] = {0};
   I2Cread(MPU9250_ADDRESS, INT_STATUS, 1, Buf);
   if (Buf[0] & 0x01) {
@@ -310,7 +329,12 @@ void mpu9250Loop() {
     Axyz[1] = (float) aRaw[1];
     Axyz[2] = (float) aRaw[2];
     //apply offsets and scale factors from Magneto
-    for (int i = 0; i < 3; i++) Axyz[i] = (Axyz[i] - A_cal[i]) * A_cal[i + 3];
+    //for (int i = 0; i < 3; i++) Axyz[i] = (Axyz[i] - A_cal[i]) * A_cal[i + 3];
+    //vector_normalize(Axyz);
+    for (int i = 0; i < 3; i++) temp[i] = (Axyz[i] - A_B[i]);
+    Axyz[0] = A_Ainv[0][0] * temp[0] + A_Ainv[0][1] * temp[1] + A_Ainv[0][2] * temp[2];
+    Axyz[1] = A_Ainv[1][0] * temp[0] + A_Ainv[1][1] * temp[1] + A_Ainv[1][2] * temp[2];
+    Axyz[2] = A_Ainv[2][0] * temp[0] + A_Ainv[2][1] * temp[1] + A_Ainv[2][2] * temp[2];
     vector_normalize(Axyz);
 
     readGyroData(gRaw);
@@ -323,7 +347,12 @@ void mpu9250Loop() {
     Mxyz[1] = (float) mRaw[1];
     Mxyz[2] = (float) mRaw[2];
     //apply offsets and scale factors from Magneto
-    for (int i = 0; i < 3; i++) Mxyz[i] = (Mxyz[i] - M_cal[i]) * M_cal[i + 3];
+    //for (int i = 0; i < 3; i++) Mxyz[i] = (Mxyz[i] - M_cal[i]) * M_cal[i + 3];
+    //vector_normalize(Mxyz);
+    for (int i = 0; i < 3; i++) temp[i] = (Mxyz[i] - M_B[i]);
+    Mxyz[0] = M_Ainv[0][0] * temp[0] + M_Ainv[0][1] * temp[1] + M_Ainv[0][2] * temp[2];
+    Mxyz[1] = M_Ainv[1][0] * temp[0] + M_Ainv[1][1] * temp[1] + M_Ainv[1][2] * temp[2];
+    Mxyz[2] = M_Ainv[2][0] * temp[0] + M_Ainv[2][1] * temp[1] + M_Ainv[2][2] * temp[2];
     vector_normalize(Mxyz);
 
     tRaw = readTempData();
