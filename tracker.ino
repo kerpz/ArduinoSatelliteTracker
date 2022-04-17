@@ -1,5 +1,11 @@
 #define SERVER_NAME "http://www.celestrak.com/satcat/tle.php?CATNR=32382"
 
+#include <ESP8266HTTPClient.h>
+#include <WiFiClientSecureBearSSL.h>
+// openssl s_client -connect api.thingspeak.com:443 | openssl x509 -fingerprint -noout
+//const uint8_t fingerprint[20] = {0x27, 0x18, 0x92, 0xDD, 0xA4, 0x26, 0xC3, 0x07, 0x09, 0xB9, 0x7A, 0xE6, 0xC5, 0x21, 0xB9, 0x5B, 0x48, 0xF7, 0x16, 0xE1};
+#include <Sgp4.h>
+
 Sgp4 sat;
 
 char satname[] = "ISS (ZARYA)";
@@ -19,9 +25,12 @@ void trackerSetup() {
 }
 
 void trackerLoop() {
+  int timezone = 8 ;  //utc + 8
+  int  year; int mon; int day; int hr; int minute; double sec;
+  
   sat.findsat(epochTime); // epochTime
-  //invjday(sat.satJd, timeZone, true, year, mon, day, hr, minute, sec);
-  //Serial.println("\nLocal time: " + String(day) + '/' + String(mon) + '/' + String(year) + ' ' + String(hr) + ':' + String(minute) + ':' + String(sec));
+  invjday(sat.satJd, timezone, true, year, mon, day, hr, minute, sec);
+  Serial.println(String(day) + '/' + String(mon) + '/' + String(year) + ' ' + String(hr) + ':' + String(minute) + ':' + String(sec));
   Serial.println("azimuth = " + String(sat.satAz) + " elevation = " + String(sat.satEl) + " distance = " + String(sat.satDist));
   Serial.println("latitude = " + String(sat.satLat) + " longitude = " + String(sat.satLon) + " altitude = " + String(sat.satAlt));
   //Serial.println("AZStep pos: " + String(stepperAZ.currentPosition()));

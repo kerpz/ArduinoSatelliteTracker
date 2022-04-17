@@ -4,35 +4,20 @@
 
  Hardware:
  - Wemos D1 mini (Compatible board)
+ - MPU 9250
  
  Software:
  - Arduino 1.8.19 (Stable)
  - Board 3.0.2
- https://github.com/shubhampaul/Real_Time_Planet_Tracking_System
+ - Adafruit SSD1306 2.5.3
+ - NTPClient 3.2.0
+ - SparkFun SGP4 1.0.3
 */
 
-#include <ESP8266WiFi.h>
-#include <ESP8266HTTPClient.h>
-#include <DNSServer.h>
-#include <ESP8266WebServer.h>
-
-#include <NTPClient.h>
-#include <WiFiUdp.h>
-
-#include <WiFiClientSecureBearSSL.h>
-// openssl s_client -connect api.thingspeak.com:443 | openssl x509 -fingerprint -noout
-//const uint8_t fingerprint[20] = {0x27, 0x18, 0x92, 0xDD, 0xA4, 0x26, 0xC3, 0x07, 0x09, 0xB9, 0x7A, 0xE6, 0xC5, 0x21, 0xB9, 0x5B, 0x48, 0xF7, 0x16, 0xE1};
-
-//#include <SoftwareSerial.h>
-
-//#include <Adafruit_ADS1015.h>
-//Adafruit_ADS1115 ads(0x48);
-
-#include <EEPROM.h>
-
-#include <Sgp4.h>
-
 #define APPNAME "SatelliteTracker v1.0"
+
+#include <ESP8266WiFi.h>
+#include <ESP8266WebServer.h>
 
 char ssid[32] = "";
 char password[32] = "";
@@ -79,75 +64,6 @@ uint8_t second = 0;
 //uint8_t minute;
 //uint8_t hour;
 
-
-void loadConfig() {
-  EEPROM.begin(512);
-
-  // Wifi part
-  EEPROM.get(0, ssid); // 32
-  EEPROM.get(32, password); // 32
-
-  // mpu6050 part
-  EEPROM.get(64, mpu9250_enable); // 1
-  // Display part
-  EEPROM.get(65, display_enable); // 1
-  // BEEP part
-  EEPROM.get(66, beep_enable); // 1
-
-  EEPROM.get(67, latitude); // 4
-  EEPROM.get(71, longitude); // 4
-  EEPROM.get(75, altitude); // 4
-  EEPROM.get(79, declination); // 4
-
-  //EEPROM.get(67, m_bias_x); // 4
-  //EEPROM.get(71, m_bias_y); // 4
-  //EEPROM.get(75, m_bias_z); // 4
-
-  char ok[3];
-  EEPROM.get(83, ok);
-  EEPROM.end();
-  
-  if (String(ok) != String("OK")) {
-    ssid[0] = 0;
-    password[0] = 0;
-    mpu9250_enable = 0;
-    display_enable = 0;
-    beep_enable = 0;
-    m_bias_x = 0.0;
-    m_bias_y = 0.0;
-    m_bias_z = 0.0;
-    declination = -2.57;
-  }
-}
-
-void saveConfig() {
-  EEPROM.begin(512);
-
-  // Wifi part
-  EEPROM.put(0, ssid); // 32
-  EEPROM.put(32, password); // 32
-
-  // mpu6050 part
-  EEPROM.put(64, mpu9250_enable); // 1
-  // Display part
-  EEPROM.put(65, display_enable); // 1
-  // BEEP part
-  EEPROM.put(66, beep_enable); // 1
-
-  EEPROM.put(67, latitude); // 4
-  EEPROM.put(71, longitude); // 4
-  EEPROM.put(75, altitude); // 4
-  EEPROM.put(79, declination); // 4
-
-  //EEPROM.put(67, m_bias_x); // 4
-  //EEPROM.put(71, m_bias_y); // 4
-  //EEPROM.put(75, m_bias_z); // 4
-
-  char ok[3] = "OK";
-  EEPROM.put(83, ok);
-  EEPROM.commit();
-  EEPROM.end();
-}
 
 void execEvery(int ms) {
   static unsigned long msTick = millis();
