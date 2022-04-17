@@ -297,7 +297,7 @@ void mpu9250Setup() {
       //Serial.println("AK8963 initialized for active data mode...."); // Initialize device for active mode read of magnetometer
       //I2Cwrite(AK8963_ADDRESS, AK8963_CNTL, 0x01); //enable the magnetometer
 
-      magnetoSamples(300);
+      //magnetoSamples(300);
       // Comment out if using pre-measured, pre-stored offset biases
       //mpu9250MagCal(mBias, mScale);
       //Serial.println("AK8963 mag biases (mG)"); Serial.println(mBias[0]); Serial.println(mBias[1]); Serial.println(mBias[2]); 

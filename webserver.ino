@@ -1,4 +1,5 @@
 // https://randomnerdtutorials.com/esp8266-nodemcu-websocket-server-arduino/
+ESP8266WebServer webServer(80);
 
 void webserverSetup() {
   webServer.on("/", handleRoot);
@@ -40,6 +41,11 @@ void webserverSetup() {
   });
   webServer.onNotFound(handleNotFound);
   webServer.begin(); // Web server start
+}
+
+void webserverLoop() {
+  // web server
+  webServer.handleClient();
 }
 
 
