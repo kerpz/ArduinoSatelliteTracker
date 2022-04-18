@@ -12,12 +12,13 @@
  - Adafruit SSD1306 2.5.3
  - NTPClient 3.2.0
  - SparkFun SGP4 1.0.3
+ - ArduinoJson 6.19.4
 */
 
 #define APPNAME "SatelliteTracker v1.0"
 
 #include <ESP8266WiFi.h>
-#include <ESP8266WebServer.h>
+//#include <ESP8266WebServer.h>
 
 char ssid[32] = "";
 char password[32] = "";
@@ -121,5 +122,5 @@ void loop() {
   if (motor_enable) motorLoop();
 
   networkLoop();
-  webserverLoop();
+  //webserverLoop();
 }
