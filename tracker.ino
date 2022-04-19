@@ -1,4 +1,4 @@
-#define SERVER_NAME "http://www.celestrak.com/satcat/tle.php?CATNR=32382"
+#define SERVER_NAME "http://www.celestrak.com/satcat/tle.php?CATNR=25544"
 
 #include <ESP8266HTTPClient.h>
 #include <WiFiClientSecureBearSSL.h>
@@ -9,11 +9,15 @@
 Sgp4 sat;
 
 char satname[] = "ISS (ZARYA)";
-char tle_line1[] = "1 25544U 98067A   22105.52091101  .00008356  00000-0  15383-3 0  9994";  //Line one from the TLE data
-char tle_line2[] = "2 25544  51.6432 286.9653 0004720  29.1347  36.8252 15.50072235335468";  //Line two from the TLE data
+char tle_line1[] = "1 25544U 98067A   22109.21444691  .00006496  00000+0  12115-3 0  9992";  //Line one from the TLE data
+char tle_line2[] = "2 25544  51.6426 268.6615 0004851  39.2849 131.6326 15.50131630336035";  //Line two from the TLE data
 
 void trackerSetup() {
+  Serial.println("latitude = " + String(latitude, 7) + " longitude = " + String(longitude, 7) + " altitude = " + String(altitude, 2));
   sat.site(latitude, longitude, altitude); //set site latitude[°], longitude[°] and altitude[m]
+  Serial.println("satname = " + String(satname));
+  Serial.println("tle_line1 = " + String(tle_line1));
+  Serial.println("tle_line2 = " + String(tle_line2));
   sat.init(satname, tle_line1, tle_line2); //initialize satellite parameters 
   //sat.findsat(timeNow);
   //sat.findsat(unixtime);
@@ -25,15 +29,33 @@ void trackerSetup() {
 }
 
 void trackerLoop() {
-  int timezone = 8 ;  //utc + 8
-  int  year; int mon; int day; int hr; int minute; double sec;
+  //int timezone = 8 ;  //utc + 8
+  //int _year;
+  //int _month;
+  //int _day;
+  //int _hour;
+  //int _minute;
+  //double _second;
   
-  sat.findsat(epochTime); // epochTime
-  invjday(sat.satJd, timezone, true, year, mon, day, hr, minute, sec);
-  Serial.println(String(day) + '/' + String(mon) + '/' + String(year) + ' ' + String(hr) + ':' + String(minute) + ':' + String(sec));
-  Serial.println("azimuth = " + String(sat.satAz) + " elevation = " + String(sat.satEl) + " distance = " + String(sat.satDist));
-  Serial.println("latitude = " + String(sat.satLat) + " longitude = " + String(sat.satLon) + " altitude = " + String(sat.satAlt));
+  sat.findsat(epoch);
+  //invjday(sat.satJd, timezone, true, _year, _month, _day, _hour, _minute, _second);
+  //Serial.println(String(day) + '/' + String(mon) + '/' + String(year) + ' ' + String(hr) + ':' + String(minute) + ':' + String(sec));
+  //Serial.println("azimuth = " + String(sat.satAz) + " elevation = " + String(sat.satEl) + " distance = " + String(sat.satDist));
+  //Serial.println("latitude = " + String(sat.satLat) + " longitude = " + String(sat.satLon) + " altitude = " + String(sat.satAlt));
   //Serial.println("AZStep pos: " + String(stepperAZ.currentPosition()));
+  sat_latitude = sat.satLat;
+  sat_longitude = sat.satLon;
+  sat_altitude = sat.satAlt;
+  sat_azimuth = sat.satAz;
+  sat_elevation = sat.satEl;
+  sat_distance = sat.satDist;
+
+  //second = _second;
+  //minute = _minute;
+  //hour = _hour;
+  //day = _day;
+  //month = _month;
+  //year = _year;
 }
 
 void getTLE () {

@@ -15,6 +15,7 @@ const char index_html[] PROGMEM = R"rawliteral(
   <title>Webserver v1.0</title>
   <meta name='viewport' content='width=device-width,initial-scale=1,user-scalable=no'>
   <style>
+    html {font-family: Arial, Helvetica, sans-serif; text-align: center;}
     body {color: #333;font-family: Century Gothic, sans-serif;font-size: 16px;line-height: 24px;margin: 0;padding: 0}
     nav{background: #3861d1;color: #fff;display: block;font-size: 1.3em;padding: 1em}
     nav b{display: block;font-size: 1.5em;margin-bottom: 0.5em}
@@ -37,17 +38,17 @@ const char index_html[] PROGMEM = R"rawliteral(
     .table {table-layout : fixed;width: 100%}
     .table td{padding:.5em;text-align:left}
     .table tbody>:nth-child(2n-1){background:#ddd}
+    .card {background-color: #F8F7F9; box-shadow: 2px 2px 12px 1px rgba(140,140,140,.5); padding-top:10px; padding-bottom:20px;}
+    /* .state {font-size: 1.5rem; color:#8c8c8c; font-weight: bold;} */
    </style>
 </head>
 <body>
-  <div class="topnav">
-    <h1>Webserver v1.0</h1>
-  </div>
-  <div class="content">
+  <nav><b>Webserver v1.0</b>Main Page</nav>
+  <div class="container">
     <div class="card">
       <h2>Output - GPIO 2</h2>
       <p class="state">state: <span id="state">%STATE%</span></p>
-      <p><button id="button" class="button">Toggle</button></p>
+      <p><button id="button" class="btn">Toggle</button></p>
     </div>
   </div>
   <script>
@@ -96,29 +97,87 @@ const char index_html[] PROGMEM = R"rawliteral(
 String processor(const String& var){
   Serial.println(var);
   if(var == "STATE"){
-    if (ledState){
-      return "ON";
-    }
-    else{
+    //if (ledState){
+    //  return "ON";
+    //}
+    //else{
       return "OFF";
-    }
+    //}
   }
   return String();
+}
+
+int getRSSIasQuality(int RSSI) {
+  int quality = 0;
+
+  if (RSSI <= -100) {
+    quality = 0;
+  } else if (RSSI >= -50) {
+    quality = 100;
+  } else {
+    quality = 2 * (RSSI + 100);
+  }
+  return quality;
 }
 
 void webserverSetup() {
   webServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send_P(200, "text/html", index_html);
   });
-  webServer.on("/info", HTTP_GET, [](AsyncWebServerRequest *request) {
+  webServer.on("/system", HTTP_GET, [](AsyncWebServerRequest *request) {
     String json;
-    StaticJsonDocument<300> doc;
-    doc["id"] = ESP.getChipId();
-    doc["freeheap"] = ESP.getFreeHeap();
-    doc["flashid"] = ESP.getFlashChipId();
-    doc["flashsize"] = ESP.getFlashChipSize();
-    doc["flashrealsize"] = ESP.getFlashChipRealSize();
-    serializeJson(doc, json);
+    
+    json += "{";
+    json += "\"id\":" + ESP.getChipId();
+    json += ",\"freeheap\":" + ESP.getFreeHeap();
+    json += ",\"flashid\":" + ESP.getFlashChipId();
+    json += ",\"flashsize\":" + ESP.getFlashChipSize();
+    json += ",\"flashrealsize\":" + ESP.getFlashChipRealSize();
+    json += "}";
+    
+    request->send(200, "application/json", json);
+  });
+  webServer.on("/scan", HTTP_GET, [](AsyncWebServerRequest *request) {
+    String json;
+
+    json = "[";
+    int n = WiFi.scanComplete();
+    if (n == -2) {
+      WiFi.scanNetworks(true);
+    } else if(n) {
+      for (int i = 0; i < n; ++i) {
+        if (i) json += ",";
+        json += "{";
+        json += "\"rssi\":" + String(WiFi.RSSI(i));
+        json += ",\"ssid\":\"" + WiFi.SSID(i) + "\"";
+        json += ",\"bssid\":\"" + WiFi.BSSIDstr(i) + "\"";
+        json += ",\"channel\":" + String(WiFi.channel(i));
+        json += ",\"secure\":" + String(WiFi.encryptionType(i));
+        json += ",\"hidden\":" + String(WiFi.isHidden(i) ? "true" : "false");
+        json += "}";
+      }
+      WiFi.scanDelete();
+      if (WiFi.scanComplete() == -2) {
+        WiFi.scanNetworks(true);
+      }
+    }
+    json += "]";
+
+    request->send(200, "application/json", json);
+  });
+  webServer.on("/wifi", HTTP_GET, [](AsyncWebServerRequest *request) {
+    String json;
+
+    json += "{";
+    json += "\"hardware1\":" + WiFi.softAPmacAddress();
+    json += "\"address1\":" + WiFi.softAPIP().toString();
+    json += "\"ssid1\":" + WiFi.SSID();
+
+    json += "\"ssid\":" + WiFi.SSID();
+    json += "\"hardware\":" + WiFi.macAddress();
+    json += "\"address\":" + WiFi.localIP().toString();
+    json += "}";
+
     request->send(200, "application/json", json);
   });
   // Send a POST request to <IP>/post with a form field message set to <message>
@@ -154,10 +213,14 @@ void webserverSetup() {
         AwsFrameInfo * info = (AwsFrameInfo*)arg;
         if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
           data[len] = 0;
-          if (strcmp((char*)data, "toggle") == 0) {
-            //ledState = !ledState;
-            //ws.textAll(String(ledState));
-          }
+          DynamicJsonDocument doc(1024);
+          deserializeJson(doc, data);
+
+          latitude = doc["latitude"];
+          longitude = doc["longitude"];
+          altitude = doc["altitude"];
+
+          //Serial.println(test);
         }
         break;
       }
@@ -175,4 +238,30 @@ void webserverSetup() {
 
 void webserverLoop() {
   ws.cleanupClients();
+}
+
+void wsLoop() {
+  String json;
+  //char datetime[20] = {0};
+  //sprintf(datetime, "%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, minute, second); 
+
+  json += "{";
+  json += "\"satellite\": {";
+  json += "\"timestamp\":\"" + String(epochTime) + "\"";
+  json += ",\"latitude\":" + String(sat_latitude, 7);
+  json += ",\"longitude\":" + String(sat_longitude, 7);
+  json += ",\"altitude\":" + String(sat_altitude);
+  json += ",\"azimuth\":" + String(sat_azimuth);
+  json += ",\"elevation\":" + String(sat_elevation);
+  json += ",\"distance\":" + String(sat_distance);
+  json += "}";
+  json += ",\"location\": {";
+  json += "\"latitude\":" + String(latitude, 7);
+  json += ",\"longitude\":" + String(longitude, 7);
+  json += ",\"altitude\":" + String(altitude);
+  json += ",\"declination\":" + String(declination);
+  json += "}";
+  json += "}";
+
+  ws.textAll(json);
 }

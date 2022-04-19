@@ -14,14 +14,10 @@ void loadConfig() {
   // BEEP part
   EEPROM.get(66, beep_enable); // 1
 
-  EEPROM.get(67, latitude); // 4
-  EEPROM.get(71, longitude); // 4
-  EEPROM.get(75, altitude); // 4
-  EEPROM.get(79, declination); // 4
-
-  //EEPROM.get(67, m_bias_x); // 4
-  //EEPROM.get(71, m_bias_y); // 4
-  //EEPROM.get(75, m_bias_z); // 4
+  //EEPROM.get(67, latitude); // 4
+  //EEPROM.get(71, longitude); // 4
+  //EEPROM.get(75, altitude); // 4
+  //EEPROM.get(79, declination); // 4
 
   char ok[3];
   EEPROM.get(83, ok);
@@ -33,10 +29,10 @@ void loadConfig() {
     mpu9250_enable = 0;
     display_enable = 0;
     beep_enable = 0;
-    m_bias_x = 0.0;
-    m_bias_y = 0.0;
-    m_bias_z = 0.0;
-    declination = -2.57;
+    //latitude = 0.0;
+    //longitude = 0.0;
+    //altitude = 0.0;
+    //declination = 0.0;
   }
 }
 
@@ -58,10 +54,6 @@ void saveConfig() {
   EEPROM.put(71, longitude); // 4
   EEPROM.put(75, altitude); // 4
   EEPROM.put(79, declination); // 4
-
-  //EEPROM.put(67, m_bias_x); // 4
-  //EEPROM.put(71, m_bias_y); // 4
-  //EEPROM.put(75, m_bias_z); // 4
 
   char ok[3] = "OK";
   EEPROM.put(83, ok);
