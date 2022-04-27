@@ -8,17 +8,13 @@
 
 Sgp4 sat;
 
-char satname[] = "ISS (ZARYA)";
-char tle_line1[] = "1 25544U 98067A   22109.21444691  .00006496  00000+0  12115-3 0  9992";  //Line one from the TLE data
-char tle_line2[] = "2 25544  51.6426 268.6615 0004851  39.2849 131.6326 15.50131630336035";  //Line two from the TLE data
-
 void trackerSetup() {
   Serial.println("latitude = " + String(latitude, 7) + " longitude = " + String(longitude, 7) + " altitude = " + String(altitude, 2));
   sat.site(latitude, longitude, altitude); //set site latitude[°], longitude[°] and altitude[m]
-  Serial.println("satname = " + String(satname));
+  Serial.println("sat_name = " + String(sat_name));
   Serial.println("tle_line1 = " + String(tle_line1));
   Serial.println("tle_line2 = " + String(tle_line2));
-  sat.init(satname, tle_line1, tle_line2); //initialize satellite parameters 
+  sat.init(sat_name, tle_line1, tle_line2); //initialize satellite parameters 
   //sat.findsat(timeNow);
   //sat.findsat(unixtime);
   //invjday(sat.satJd, timeZone, true, year, mon, day, hr, minute, sec);

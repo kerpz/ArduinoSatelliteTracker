@@ -10,5 +10,5 @@ void ntpSetup() {
 
 void ntpLoop() {
   timeClient.update();
-  epochTime = timeClient.getEpochTime();
+  epoch = timeClient.getEpochTime();
 }

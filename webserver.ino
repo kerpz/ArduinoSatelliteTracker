@@ -8,92 +8,6 @@
 AsyncWebServer webServer(80);
 AsyncWebSocket ws("/ws");
 
-const char index_html[] PROGMEM = R"rawliteral(
-<!DOCTYPE html>
-<html lang='en'>
-<head>
-  <title>Webserver v1.0</title>
-  <meta name='viewport' content='width=device-width,initial-scale=1,user-scalable=no'>
-  <style>
-    html {font-family: Arial, Helvetica, sans-serif; text-align: center;}
-    body {color: #333;font-family: Century Gothic, sans-serif;font-size: 16px;line-height: 24px;margin: 0;padding: 0}
-    nav{background: #3861d1;color: #fff;display: block;font-size: 1.3em;padding: 1em}
-    nav b{display: block;font-size: 1.5em;margin-bottom: 0.5em}
-    textarea,input,select{outline: 0;font-size: 14px;border: 1px solid #ccc;padding: 8px;width: 100%;box-sizing: border-box}
-    input[type='checkbox']{float: left;width: 20px}
-    textarea:focus,input:focus,select:focus{border-color: #5ab}
-    .container{margin: auto;width: 90%}
-    @media(min-width:1200px){.container{margin: auto;width: 30%}}
-    @media(min-width:768px) and (max-width:1200px){.container{margin: auto;width: 50%}}
-    /* h1{font-size: 3em} */
-    /* .btn{background: #0ae;border-radius: 4px;border: 0;color: #fff;cursor: pointer;font-size: 1.5em;display: inline-block;margin: 2px 0;padding: 10px 14px 11px;width: 100%} */
-    .btn{background: #0ae;border-radius: 4px;border: 0;color: #fff;cursor: pointer;font-size: 1.5em;display: inline-block;margin: 2px 0;padding: 10px 0px 11px;width: 100%;text-align: center;text-decoration: none}
-    .btn:hover{background: #09d}
-    .btn:active,.btn:focus{background: #08b}
-    label>*{display: inline}
-    form>*{display: block;margin-bottom: 10px}
-    .msg{background: #def;border-left: 5px solid #59d;padding: 1.5em}
-    /* .q{float: right;width: 64px;text-align: right} */
-    /* .l{background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAALVBMVEX///8EBwfBwsLw8PAzNjaCg4NTVVUjJiZDRUUUFxdiZGSho6OSk5Pg4eFydHTCjaf3AAAAZElEQVQ4je2NSw7AIAhEBamKn97/uMXEGBvozkWb9C2Zx4xzWykBhFAeYp9gkLyZE0zIMno9n4g19hmdY39scwqVkOXaxph0ZCXQcqxSpgQpONa59wkRDOL93eAXvimwlbPbwwVAegLS1HGfZAAAAABJRU5ErkJggg==') no-repeat left center;background-size: 1em} */
-    .table {table-layout : fixed;width: 100%}
-    .table td{padding:.5em;text-align:left}
-    .table tbody>:nth-child(2n-1){background:#ddd}
-    .card {background-color: #F8F7F9; box-shadow: 2px 2px 12px 1px rgba(140,140,140,.5); padding-top:10px; padding-bottom:20px;}
-    /* .state {font-size: 1.5rem; color:#8c8c8c; font-weight: bold;} */
-   </style>
-</head>
-<body>
-  <nav><b>Webserver v1.0</b>Main Page</nav>
-  <div class="container">
-    <div class="card">
-      <h2>Output - GPIO 2</h2>
-      <p class="state">state: <span id="state">%STATE%</span></p>
-      <p><button id="button" class="btn">Toggle</button></p>
-    </div>
-  </div>
-  <script>
-    var gateway = `ws://${window.location.hostname}/ws`;
-    var websocket;
-    window.addEventListener('load', onLoad);
-    function initWebSocket() {
-      console.log('Trying to open a WebSocket connection...');
-      websocket = new WebSocket(gateway);
-      websocket.onopen    = onOpen;
-      websocket.onclose   = onClose;
-      websocket.onmessage = onMessage; // <-- add this line
-    }
-    function onOpen(event) {
-      console.log('Connection opened');
-    }
-    function onClose(event) {
-      console.log('Connection closed');
-      setTimeout(initWebSocket, 2000);
-    }
-    function onMessage(event) {
-      var state;
-      if (event.data == "1"){
-        state = "ON";
-      }
-      else{
-        state = "OFF";
-      }
-      document.getElementById('state').innerHTML = state;
-    }
-    function onLoad(event) {
-      initWebSocket();
-      initButton();
-    }
-    function initButton() {
-      document.getElementById('button').addEventListener('click', toggle);
-    }
-    function toggle(){
-      websocket.send('toggle');
-    }
-  </script>
-</body>
-</html>
-)rawliteral";
-
 String processor(const String& var){
   Serial.println(var);
   if(var == "STATE"){
@@ -127,20 +41,26 @@ void webserverSetup() {
   webServer.on("/system", HTTP_GET, [](AsyncWebServerRequest *request) {
     String json;
     
-    json += "{";
-    json += "\"id\":" + ESP.getChipId();
-    json += ",\"freeheap\":" + ESP.getFreeHeap();
-    json += ",\"flashid\":" + ESP.getFlashChipId();
-    json += ",\"flashsize\":" + ESP.getFlashChipSize();
-    json += ",\"flashrealsize\":" + ESP.getFlashChipRealSize();
-    json += "}";
+    json += "[";
+    json += "{\"type\":\"title\",\"value\":\"System\"},";
+    json += "{\"type\":\"table\",\"name\":\"system\",\"data\":[";
+    json += "[\"Chip ID\",\""+String(ESP.getChipId())+"\"],";
+    json += "[\"Free Heap\",\""+String(ESP.getFreeHeap())+"\"],";
+    json += "[\"Flash ID\",\""+String(ESP.getFlashChipId())+"\"],";
+    json += "[\"Flash Size\",\""+String(ESP.getFlashChipSize())+"\"],";
+    json += "[\"Flash Real Size\",\""+String(ESP.getFlashChipRealSize())+"\"]";
+    json += "]}";
+    json += "]";
     
-    request->send(200, "application/json", json);
+    //request->send(200, "application/json", json);
+    AsyncWebServerResponse *response = request->beginResponse(200, "application/json", json);
+    response->addHeader("Access-Control-Allow-Origin", "*");
+    request->send(response);
   });
   webServer.on("/scan", HTTP_GET, [](AsyncWebServerRequest *request) {
-    String json;
+    String json = "";
 
-    json = "[";
+    json += "[";
     int n = WiFi.scanComplete();
     if (n == -2) {
       WiFi.scanNetworks(true);
@@ -163,27 +83,156 @@ void webserverSetup() {
     }
     json += "]";
 
-    request->send(200, "application/json", json);
+    AsyncWebServerResponse *response = request->beginResponse(200, "application/json", json);
+    response->addHeader("Access-Control-Allow-Origin", "*");
+    request->send(response);
   });
   webServer.on("/wifi", HTTP_GET, [](AsyncWebServerRequest *request) {
-    String json;
+    String json = "";
 
-    json += "{";
-    json += "\"hardware1\":" + WiFi.softAPmacAddress();
-    json += "\"address1\":" + WiFi.softAPIP().toString();
-    json += "\"ssid1\":" + WiFi.SSID();
+    json += "[";
+    json += "{\"type\":\"title\",\"value\":\"Wifi\"},";
+    json += "{\"type\":\"text\",\"label\":\"Hardware AP\",\"name\":\"hardware1\",\"value\":\"" + WiFi.softAPmacAddress() + "\"},";
+    json += "{\"type\":\"text\",\"label\":\"Address AP\",\"name\":\"address1\",\"value\":\"" + WiFi.softAPIP().toString() + "\"},";
+    json += "{\"type\":\"text\",\"label\":\"SSID AP\",\"name\":\"ssid1\",\"value\":\"" + WiFi.SSID() + "\"},";
 
-    json += "\"ssid\":" + WiFi.SSID();
-    json += "\"hardware\":" + WiFi.macAddress();
-    json += "\"address\":" + WiFi.localIP().toString();
-    json += "}";
+    json += "{\"type\":\"text\",\"label\":\"Hardware\",\"name\":\"hardware\",\"value\":\"" + WiFi.macAddress() + "\"},";
+    json += "{\"type\":\"text\",\"label\":\"Address\",\"name\":\"address\",\"value\":\"" + WiFi.localIP().toString() + "\"},";
+    json += "{\"type\":\"text\",\"label\":\"SSID\",\"name\":\"ssid\",\"value\":\"" + WiFi.SSID() + "\"},";
+    json += "{\"type\":\"button\",\"label\":\"UPDATE\",\"name\":\"update\"}";
+    json += "]";
 
-    request->send(200, "application/json", json);
+    AsyncWebServerResponse *response = request->beginResponse(200, "application/json", json);
+    response->addHeader("Access-Control-Allow-Origin", "*");
+    request->send(response);
+  });
+  webServer.on("/wifi", HTTP_POST, [](AsyncWebServerRequest *request){
+      //nothing and dont remove it
+    }, NULL, [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total){
+    DynamicJsonDocument doc(1024);
+    String json = "";
+
+    deserializeJson(doc, data);
+    // if we have data then
+    // set local data
+    // save config
+    //serializeJson(doc, json);
+
+    json += "[";
+    json += "{\"type\":\"title\",\"value\":\"Wifi\"},";
+    json += "{\"type\":\"text\",\"label\":\"Hardware AP\",\"name\":\"hardware1\",\"value\":\"" + WiFi.softAPmacAddress() + "\"},";
+    json += "{\"type\":\"text\",\"label\":\"Address AP\",\"name\":\"address1\",\"value\":\"" + WiFi.softAPIP().toString() + "\"},";
+    json += "{\"type\":\"text\",\"label\":\"SSID AP\",\"name\":\"ssid1\",\"value\":\"" + WiFi.SSID() + "\"},";
+
+    json += "{\"type\":\"text\",\"label\":\"Hardware\",\"name\":\"hardware\",\"value\":\"" + WiFi.macAddress() + "\"},";
+    json += "{\"type\":\"text\",\"label\":\"Address\",\"name\":\"address\",\"value\":\"" + WiFi.localIP().toString() + "\"},";
+    json += "{\"type\":\"text\",\"label\":\"SSID\",\"name\":\"ssid\",\"value\":\"" + WiFi.SSID() + "\"},";
+    json += "{\"type\":\"button\",\"label\":\"UPDATE\",\"name\":\"update\"}";
+    json += "]";
+
+    AsyncWebServerResponse *response = request->beginResponse(200, "application/json", json);
+    response->addHeader("Access-Control-Allow-Origin", "*");
+    request->send(response);
+  });
+  webServer.on("/tracker", HTTP_GET, [](AsyncWebServerRequest *request) {
+    String json = "";
+    String opts = "";
+    String sep="";
+
+    for (byte i=0; i<61; i++) {
+      opts += sep + "[\""+String(i)+"\",\""+String(i)+"\"]";
+      sep = ",";
+    }
+
+    json += "[";
+    json += "{\"type\":\"title\",\"value\":\"Satellite\"},";
+    json += "{\"type\":\"table\",\"name\":\"satellite\",\"data\":[";
+    json += "[\"Name\",\""+String(sat_name)+"\"],";
+    json += "[\"Epoch\",\""+String(epoch)+"\"],";
+    json += "[\"Latitude\",\""+String(sat_latitude, 7)+"\"],";
+    json += "[\"Longitude\",\""+String(sat_longitude, 7)+"\"],";
+    json += "[\"Altitude (km)\",\""+String(sat_altitude)+"\"],";
+    json += "[\"Azimuth\",\""+String(sat_azimuth)+"\"],";
+    json += "[\"Elevation\",\""+String(sat_elevation)+"\"],";
+    json += "[\"Distance\",\""+String(sat_distance)+"\"]";
+    json += "]},";
+    json += "{\"type\":\"title\",\"value\":\"Location\"},";
+    json += "{\"type\":\"table\",\"name\":\"location\",\"data\":[";
+    json += "[\"Latitude\",\""+String(latitude, 7)+"\"],";
+    json += "[\"Longitude\",\""+String(longitude, 7)+"\"],";
+    json += "[\"Altitude (m)\",\""+String(altitude)+"\"],";
+    json += "[\"Declination\",\""+String(declination)+"\"]";
+    json += "]},";
+    json += "{\"type\":\"title\",\"value\":\"Sensor\"},";
+    json += "{\"type\":\"table\",\"name\":\"sensor\",\"data\":[";
+    //json += "[\"Azimuth\",\""+String(azimuth)+"\"],";
+    //json += "[\"Elevation\",\""+String(elevation)+"\"],";
+    json += "[\"Yaw\",\""+String(yaw)+"\"],";
+    json += "[\"Pitch\",\""+String(pitch)+"\"],";
+    json += "[\"Roll\",\""+String(roll)+"\"],";
+    json += "[\"Temperature\",\""+String(temperature)+"\"]";
+    json += "]},";
+    json += "{\"type\":\"select\",\"label\":\"Refresh\",\"name\":\"refresh\",\"value\":\"2\",\"options\":["+opts+"]}";
+    json += "]";
+
+    AsyncWebServerResponse *response = request->beginResponse(200, "application/json", json);
+    response->addHeader("Access-Control-Allow-Origin", "*");
+    request->send(response);
+  });
+  webServer.on("/tracker", HTTP_POST, [](AsyncWebServerRequest *request) {
+      //nothing and dont remove it
+  }, NULL, [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total){
+    DynamicJsonDocument doc(1024);
+    deserializeJson(doc, data);
+
+    String json = "";
+    String opts = "";
+    String sep="";
+
+    for (byte i=0; i<61; i++) {
+      opts += sep + "[\""+String(i)+"\",\""+String(i)+"\"]";
+      sep = ",";
+    }
+
+    json += "[";
+    json += "{\"type\":\"title\",\"value\":\"Satellite\"},";
+    json += "{\"type\":\"table\",\"name\":\"satellite\",\"data\":[";
+    json += "[\"Name\",\""+String(sat_name)+"\"],";
+    json += "[\"Epoch\",\""+String(epoch)+"\"],";
+    json += "[\"Latitude\",\""+String(sat_latitude, 7)+"\"],";
+    json += "[\"Longitude\",\""+String(sat_longitude, 7)+"\"],";
+    json += "[\"Altitude\",\""+String(sat_altitude)+"\"],";
+    json += "[\"Azimuth\",\""+String(sat_azimuth)+"\"],";
+    json += "[\"Elevation\",\""+String(sat_elevation)+"\"],";
+    json += "[\"Distance\",\""+String(sat_distance)+"\"]";
+    json += "]},";
+    json += "{\"type\":\"title\",\"value\":\"Location\"},";
+    json += "{\"type\":\"table\",\"name\":\"location\",\"data\":[";
+    json += "[\"Latitude\",\""+String(latitude, 7)+"\"],";
+    json += "[\"Longitude\",\""+String(longitude, 7)+"\"],";
+    json += "[\"Altitude\",\""+String(altitude)+"\"],";
+    json += "[\"Declination\",\""+String(declination)+"\"]";
+    json += "]},";
+    json += "{\"type\":\"title\",\"value\":\"Sensor\"},";
+    json += "{\"type\":\"table\",\"name\":\"sensor\",\"data\":[";
+    //json += "[\"Azimuth\",\""+String(azimuth)+"\"],";
+    //json += "[\"Elevation\",\""+String(elevation)+"\"],";
+    json += "[\"Yaw\",\""+String(yaw)+"\"],";
+    json += "[\"Pitch\",\""+String(pitch)+"\"],";
+    json += "[\"Roll\",\""+String(roll)+"\"],";
+    json += "[\"Temperature\",\""+String(temperature)+"\"]";
+    json += "]},";
+    json += "{\"type\":\"select\",\"label\":\"Refresh\",\"name\":\"refresh\",\"value\":\""+String(doc["refresh"])+"\",\"options\":["+opts+"]}";
+    json += "]";
+
+    AsyncWebServerResponse *response = request->beginResponse(200, "application/json", json);
+    response->addHeader("Access-Control-Allow-Origin", "*");
+    request->send(response);
   });
   // Send a POST request to <IP>/post with a form field message set to <message>
   webServer.on("/post", HTTP_POST, [](AsyncWebServerRequest *request){
       //nothing and dont remove it
-    }, NULL, [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total){
+  }, NULL, [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
     DynamicJsonDocument doc(1024);
     deserializeJson(doc, data);
     String json;
@@ -247,7 +296,7 @@ void wsLoop() {
 
   json += "{";
   json += "\"satellite\": {";
-  json += "\"timestamp\":\"" + String(epochTime) + "\"";
+  json += "\"timestamp\":\"" + String(epoch) + "\"";
   json += ",\"latitude\":" + String(sat_latitude, 7);
   json += ",\"longitude\":" + String(sat_longitude, 7);
   json += ",\"altitude\":" + String(sat_altitude);

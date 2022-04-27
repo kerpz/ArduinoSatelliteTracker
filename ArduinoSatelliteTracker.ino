@@ -17,8 +17,6 @@
 
 #define APPNAME "SatelliteTracker v1.0"
 
-//#include <ESP8266WiFi.h>
-
 char ssid[32] = "";
 char password[32] = "";
 
@@ -52,6 +50,10 @@ float latitude = 14.6112342;
 float longitude = 121.1303641;
 float altitude = 19.0;
 float declination = -2.57;  // Cainta // dd = d + m/60 + s/3600
+
+char sat_name[] = "ISS (ZARYA)";
+char tle_line1[] = "1 25544U 98067A   22109.21444691  .00006496  00000+0  12115-3 0  9992";  //Line one from the TLE data
+char tle_line2[] = "2 25544  51.6426 268.6615 0004851  39.2849 131.6326 15.50131630336035";  //Line two from the TLE data
 
 float sat_latitude;
 float sat_longitude;
