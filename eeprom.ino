@@ -14,10 +14,10 @@ void loadConfig() {
   // BEEP part
   EEPROM.get(66, beep_enable); // 1
 
-  //EEPROM.get(67, latitude); // 4
-  //EEPROM.get(71, longitude); // 4
-  //EEPROM.get(75, altitude); // 4
-  //EEPROM.get(79, declination); // 4
+  EEPROM.get(67, latitude); // 4
+  EEPROM.get(71, longitude); // 4
+  EEPROM.get(75, altitude); // 4
+  EEPROM.get(79, declination); // 4
 
   char ok[3];
   EEPROM.get(83, ok);
@@ -29,10 +29,10 @@ void loadConfig() {
     mpu9250_enable = 0;
     display_enable = 0;
     beep_enable = 0;
-    //latitude = 0.0;
-    //longitude = 0.0;
-    //altitude = 0.0;
-    //declination = 0.0;
+    latitude = 0.0;
+    longitude = 0.0;
+    altitude = 0.0;
+    declination = 0.0;
   }
 }
 
