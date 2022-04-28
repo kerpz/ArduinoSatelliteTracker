@@ -172,26 +172,24 @@ float aRes, gRes, mRes; // scale
 //
 // redetermined 12/25/2020 (0 rejected)
 //acel offsets and correction matrix
-float A_B[3]
-{  565.83,  195.43,  848.90};
+float A_B[3] { 565.83, 195.43, 848.90 };
 
-float A_Ainv[3][3]
-{ {  1.00380, -0.00143,  0.00704},
-  { -0.00143,  1.00976, -0.00026},
-  {  0.00704, -0.00026,  0.98564}
+float A_Ainv[3][3] {
+  {1.00380, -0.00143, 0.00704},
+  {-0.00143, 1.00976, -0.00026},
+  {0.00704, -0.00026, 0.98564}
 };
 
 // mag offsets and correction matrix
-float M_B[3]
-{   17.22,   28.11,  -39.81};
+float M_B[3] {17.22, 28.11, -39.81};
 
-float M_Ainv[3][3]
-{ {  1.19679,  0.00488,  0.00902},
-  {  0.00488,  1.20826,  0.00392},
-  {  0.00902,  0.00392,  1.21853}
+float M_Ainv[3][3] {
+  {1.19679, 0.00488, 0.00902},
+  {0.00488, 1.20826, 0.00392},
+  {0.00902, 0.00392, 1.21853}
 };
 
-float G_off[3] = { 213.3, -45.5, -72.1}; //raw offsets, determined for gyro at rest
+float G_off[3] = {213.3, -45.5, -72.1}; //raw offsets, determined for gyro at rest
 // ^^^^^^^^^^^^^^^^^^^ VERY VERY IMPORTANT ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 float mCal[3] = {0.0, 0.0, 0.0}; // default ?
 
@@ -388,64 +386,60 @@ void mpu9250Loop() {
 //====== Set of useful function to access acceleration. gyroscope, magnetometer, and temperature data
 //===================================================================================================================
 void getMres() {
-  switch (Mscale)
-  {
-   // Possible magnetometer scales (and their register bit settings) are:
-  // 14 bit resolution (0) and 16 bit resolution (1)
+  switch (Mscale) {
+    // Possible magnetometer scales (and their register bit settings) are:
+    // 14 bit resolution (0) and 16 bit resolution (1)
     case MFS_14BITS:
-          mRes = 10.*4912./8190.; // Proper scale to return milliGauss
-          break;
+      mRes = 10.*4912./8190.; // Proper scale to return milliGauss
+      break;
     case MFS_16BITS:
-          mRes = 10.*4912./32760.0; // Proper scale to return milliGauss
-          break;
+      mRes = 10.*4912./32760.0; // Proper scale to return milliGauss
+      break;
   }
 }
 
 void getGres() {
-  switch (Gscale)
-  {
-  // Possible gyro scales (and their register bit settings) are:
-  // 250 DPS (00), 500 DPS (01), 1000 DPS (10), and 2000 DPS  (11). 
-        // Here's a bit of an algorith to calculate DPS/(ADC tick) based on that 2-bit value:
+  switch (Gscale) {
+    // Possible gyro scales (and their register bit settings) are:
+    // 250 DPS (00), 500 DPS (01), 1000 DPS (10), and 2000 DPS  (11). 
+    // Here's a bit of an algorith to calculate DPS/(ADC tick) based on that 2-bit value:
     case GFS_250DPS:
-          gRes = 250.0/32768.0;
-          break;
+      gRes = 250.0/32768.0;
+      break;
     case GFS_500DPS:
-          gRes = 500.0/32768.0;
-          break;
+      gRes = 500.0/32768.0;
+      break;
     case GFS_1000DPS:
-          gRes = 1000.0/32768.0;
-          break;
+      gRes = 1000.0/32768.0;
+      break;
     case GFS_2000DPS:
-          gRes = 2000.0/32768.0;
-          break;
+      gRes = 2000.0/32768.0;
+      break;
   }
 }
 
 void getAres() {
-  switch (Ascale)
-  {
-  // Possible accelerometer scales (and their register bit settings) are:
-  // 2 Gs (00), 4 Gs (01), 8 Gs (10), and 16 Gs  (11). 
-        // Here's a bit of an algorith to calculate DPS/(ADC tick) based on that 2-bit value:
+  switch (Ascale) {
+    // Possible accelerometer scales (and their register bit settings) are:
+    // 2 Gs (00), 4 Gs (01), 8 Gs (10), and 16 Gs  (11). 
+    // Here's a bit of an algorith to calculate DPS/(ADC tick) based on that 2-bit value:
     case AFS_2G:
-          aRes = 2.0/32768.0;
-          break;
+      aRes = 2.0/32768.0;
+      break;
     case AFS_4G:
-          aRes = 4.0/32768.0;
-          break;
+      aRes = 4.0/32768.0;
+      break;
     case AFS_8G:
-          aRes = 8.0/32768.0;
-          break;
+      aRes = 8.0/32768.0;
+      break;
     case AFS_16G:
-          aRes = 16.0/32768.0;
-          break;
+      aRes = 16.0/32768.0;
+      break;
   }
 }
 
 
-void readAccelData(int16_t * destination)
-{
+void readAccelData(int16_t * destination) {
   uint8_t rawData[6];  // x/y/z accel register data stored here
   I2Cread(MPU9250_ADDRESS, ACCEL_XOUT_H, 6, &rawData[0]);  // Read the six raw data registers into data array
   destination[0] = ((int16_t)rawData[0] << 8) | rawData[1];  // Turn the MSB and LSB into a signed 16-bit value
@@ -454,8 +448,7 @@ void readAccelData(int16_t * destination)
 }
 
 
-void readGyroData(int16_t * destination)
-{
+void readGyroData(int16_t * destination) {
   uint8_t rawData[6];  // x/y/z gyro register data stored here
   I2Cread(MPU9250_ADDRESS, GYRO_XOUT_H, 6, &rawData[0]);  // Read the six raw data registers sequentially into data array
   destination[0] = ((int16_t)rawData[0] << 8) | rawData[1];  // Turn the MSB and LSB into a signed 16-bit value
@@ -463,8 +456,7 @@ void readGyroData(int16_t * destination)
   destination[2] = ((int16_t)rawData[4] << 8) | rawData[5];
 }
 
-void readMagData(int16_t * destination)
-{
+void readMagData(int16_t * destination) {
   uint8_t Buf[1] = {0};
   uint8_t rawData[7];  // x/y/z gyro register data, ST2 register stored here, must read ST2 at end of data acquisition
 
@@ -485,8 +477,7 @@ void readMagData(int16_t * destination)
   }
 }
 
-int16_t readTempData()
-{
+int16_t readTempData() {
   uint8_t rawData[2];  // x/y/z gyro register data stored here
   I2Cread(MPU9250_ADDRESS, TEMP_OUT_H, 2, &rawData[0]);  // Read the two raw data registers sequentially into data array 
   return ((int16_t)rawData[0] << 8) | rawData[1] ;  // Turn the MSB and LSB into a 16-bit value
@@ -738,8 +729,8 @@ void mpu9250MagCal(float * dest1, float * dest2)
 */
 
 // Accelerometer and gyroscope self test; check calibration wrt factory settings
-void mpu9250SelfTest(float * destination) // Should return percent deviation from factory trim values, +/- 14 or less deviation is a pass
-{
+// Should return percent deviation from factory trim values, +/- 14 or less deviation is a pass
+void mpu9250SelfTest(float * destination) {
   uint8_t rawData[6] = {0, 0, 0, 0, 0, 0};
   uint8_t selfTest[6];
   int32_t gAvg[3] = {0}, aAvg[3] = {0}, aSTAvg[3] = {0}, gSTAvg[3] = {0};
@@ -826,8 +817,7 @@ void mpu9250SelfTest(float * destination) // Should return percent deviation fro
   }
 }
 
-void ak8963Init(float * destination)
-{
+void ak8963Init(float * destination) {
   // First extract the factory calibration for each magnetometer axis
   uint8_t rawData[3];  // x/y/z gyro calibration data stored here
   I2Cwrite(AK8963_ADDRESS, AK8963_CNTL, 0x00); // Power down magnetometer  
@@ -847,8 +837,7 @@ void ak8963Init(float * destination)
   delay(10);
 }
 
-void MadgwickQuaternionUpdate(float ax, float ay, float az, float gx, float gy, float gz, float mx, float my, float mz, float deltat)
-{
+void MadgwickQuaternionUpdate(float ax, float ay, float az, float gx, float gy, float gz, float mx, float my, float mz, float deltat) {
   float q1 = q[0], q2 = q[1], q3 = q[2], q4 = q[3];   // short name local variable for readability
   float norm;
   float hx, hy, _2bx, _2bz;
@@ -941,8 +930,7 @@ void MadgwickQuaternionUpdate(float ax, float ay, float az, float gx, float gy, 
 }
 // Similar to Madgwick scheme but uses proportional and integral filtering on the error between estimated reference vectors and
 // measured ones.
-void MahonyQuaternionUpdate(float ax, float ay, float az, float gx, float gy, float gz, float mx, float my, float mz, float deltat)
-{
+void MahonyQuaternionUpdate(float ax, float ay, float az, float gx, float gy, float gz, float mx, float my, float mz, float deltat) {
   float q1 = q[0], q2 = q[1], q3 = q[2], q4 = q[3];   // short name local variable for readability
   float norm;
   float hx, hy, bx, bz;
@@ -1034,13 +1022,11 @@ void MahonyQuaternionUpdate(float ax, float ay, float az, float gx, float gy, fl
   q[3] = q4 * norm;
 }
 
-float vector_dot(float a[3], float b[3])
-{
+float vector_dot(float a[3], float b[3]) {
   return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 }
 
-void vector_normalize(float a[3])
-{
+void vector_normalize(float a[3]) {
   float mag = sqrt(vector_dot(a, a));
   a[0] /= mag;
   a[1] /= mag;
