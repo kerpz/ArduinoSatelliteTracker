@@ -231,6 +231,49 @@ void webserverSetup() {
       request->send(response);
     }
   });
+  webServer.on("/upload", HTTP_POST, [](AsyncWebServerRequest *request) {
+    String json;
+    json += "[";
+    if (Update.hasError())
+      json += "{\"type\":\"title\",\"value\":\"Upload Failed\"}";
+   else
+      json += "{\"type\":\"title\",\"value\":\"Upload Success\"}";
+
+    json += "{\"type\":\"file\",\"label\":\"File\",\"name\":\"file\",\"value\":\"\"},";
+    json += "{\"type\":\"button\",\"label\":\"UPDATE\",\"name\":\"update\",\"value\":\"update\"}";
+    json += "]";
+    request->send(200, "application/json", json);
+    ESP.restart();
+  }, [](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
+    //static uint16_t ptr = 0;
+    //static char buffer[1024] = {0};
+
+    if (!index) {
+      Serial.setDebugOutput(true);
+      //WiFiUDP::stopAll();
+      Serial.printf("Update: %s\n", filename.c_str());
+      uint32_t maxSketchSpace = (ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000;
+      if (!Update.begin(maxSketchSpace)) { //start with max available size
+        Update.printError(Serial);
+      }
+    }
+    if (Update.write(data, len) != len) {
+      Update.printError(Serial);
+    }
+    if (final) {
+      //Serial.printf("UploadEnd: %s, %u B\n", filename.c_str(), index+len);
+      if (Update.end(true)) { //true to set the size to the current progress
+        Serial.printf("Update Success: %u\nRebooting...\n", index+len);
+      } else {
+        Update.printError(Serial);
+      }
+      Serial.setDebugOutput(false);
+      //AsyncWebServerResponse *response = request->beginResponse(200, "application/json", json);
+      //response->addHeader("Access-Control-Allow-Origin", "*");
+      //request->send(response);
+    }
+    yield();
+  });
   // Send a POST request to <IP>/post with a form field message set to <message>
   webServer.on("/post", HTTP_POST, [](AsyncWebServerRequest *request) {
       //nothing and dont remove it

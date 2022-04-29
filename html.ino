@@ -288,6 +288,7 @@ const char index_html[] PROGMEM = R"rawliteral(
             break;
           case 'text':
           case 'password':
+          case 'file':
             html += '<p>';
             html += '<label>' + obj.label + '</label>';
             html += '<input type="' + obj.type + '" id="_' + obj.name + '" name="' + obj.name + '" value="' + obj.value + '" autocomplete="off" ' + obj.attrib + ' />';

@@ -78,7 +78,6 @@ uint8_t month;
 uint16_t year;
 
 
-
 void execEvery(int ms) {
   static unsigned long msTick = millis();
   static uint8_t sTick;
