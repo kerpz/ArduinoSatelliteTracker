@@ -214,10 +214,10 @@ const char index_html[] PROGMEM = R"rawliteral(
     <div class="nav-links">
       <ul>
         <li><a href="#/system">System</a></li>
-        <li><a href="#/wifi">Wifi</a></li>
         <li><a href="#/config">Config</a></li>
         <li><a href="#/tracker">Tracker</a></li>
         <li><a href="#/control">Control</a></li>
+        <li><a href="#/firmware">Firmware</a></li>
       </ul>
     </div>
   </nav>
