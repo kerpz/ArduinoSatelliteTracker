@@ -100,6 +100,7 @@ void webserverSetup() {
         if (i) json += ",";
         json += "{";
         json += "\"rssi\":" + String(WiFi.RSSI(i));
+        json += "\"signal\":" + String(getRSSIasQuality(WiFi.RSSI(i)));
         json += ",\"ssid\":\"" + WiFi.SSID(i) + "\"";
         json += ",\"bssid\":\"" + WiFi.BSSIDstr(i) + "\"";
         json += ",\"channel\":" + String(WiFi.channel(i));
