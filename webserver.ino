@@ -228,6 +228,36 @@ void webserverSetup() {
       request->send(response);
     }
   });
+  webServer.on("/control", HTTP_POST, [](AsyncWebServerRequest *request) {
+      //nothing and dont remove it
+  }, NULL, [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
+    static uint16_t ptr = 0;
+    static char buffer[1024] = {0};
+
+    if (!index) ptr = 0;
+    for (size_t i=0; i<len; i++) {
+      buffer[ptr] = data[i];
+      ptr++;
+    }
+    if (index + len == total) {
+      DynamicJsonDocument doc(1024);
+      deserializeJson(doc, data);
+  
+      String json;
+  
+      //if (doc["action"]) ESP.restart();
+      
+      json += "[";
+      json += "{\"type\":\"title\",\"value\":\"Control\"},";
+      json += "{\"type\":\"arrows\"}";
+      json += "]";
+      
+      //request->send(200, "application/json", json);
+      AsyncWebServerResponse *response = request->beginResponse(200, "application/json", json);
+      response->addHeader("Access-Control-Allow-Origin", "*");
+      request->send(response);
+    }
+  });
   webServer.on("/firmware", HTTP_POST, [](AsyncWebServerRequest *request) {
       //nothing and dont remove it
   }, NULL, [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {

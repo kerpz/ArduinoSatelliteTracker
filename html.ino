@@ -136,11 +136,11 @@ const char index_html[] PROGMEM = R"rawliteral(
     textarea:focus,
     input:focus,
     select:focus {
-      border-color: #5ab;
+      border-color: rgb(188, 194, 196);
     }
 
     button {
-      background: #0ae;
+      background: rgb(68, 71, 72);
       border-radius: 4px;
       border: 0;
       color: #fff;
@@ -155,12 +155,12 @@ const char index_html[] PROGMEM = R"rawliteral(
     }
 
     button:hover {
-      background: #09d;
+      background: rgb(94, 97, 98);
     }
 
     button:active,
     button:focus {
-      background: #08b;
+      background: rgb(83, 85, 86);
     }
 
     label>* {
@@ -351,6 +351,30 @@ const char index_html[] PROGMEM = R"rawliteral(
             html += obj.value;
             html += '</p>';
             break;
+          case 'arrows':
+            html += '<p>';
+            html += '<table>';
+            html += '<tbody>';
+            html += '<tr>';
+            html += '<td></td><td></td>';
+            html += '<td><button id="_up">U</button></td>';
+            html += '<td></td><td></td>';
+            html += '</tr>';
+            html += '<tr>';
+            html += '<td></td>';
+            html += '<td><button id="_left">L</button></td>';
+            html += '<td></td>';
+            html += '<td><button id="_right">R</button></td>';
+            html += '<td></td>';
+            html += '</tr>';
+            html += '<tr>';
+            html += '<td></td><td></td>';
+            html += '<td><button id="_down">D</button></td>';
+            html += '<td></td><td></td>';
+            html += '</tr>';
+            html += '</tbody>';
+            html += '</table>';
+            html += '</p>';
           default:
             break;
         }
@@ -395,12 +419,53 @@ const char index_html[] PROGMEM = R"rawliteral(
                 if (!confirm(obj.confirm)) {
                   // e.stopImmediatePropagation();
                   e.preventDefault();
-                  return false;
                 }
               }
               fetchPage(path[1], serialize());
             });
             break;
+          case 'arrows':
+            document.getElementById('_up').addEventListener('mousedown', (e) => {
+              //console.log('_up');
+              fetchPage(path[1], '{ "action": "up" }');
+              e.preventDefault();
+            });
+            document.getElementById('_up').addEventListener('click', (e) => {
+              //console.log('stop');
+              fetchPage(path[1], '{ "action": "stop" }');
+              e.preventDefault();
+            });
+            document.getElementById('_left').addEventListener('mousedown', (e) => {
+              //console.log('_left');
+              fetchPage(path[1], '{ "action": "left" }');
+              e.preventDefault();
+            });
+            document.getElementById('_left').addEventListener('click', (e) => {
+              //console.log('stop');
+              fetchPage(path[1], '{ "action": "stop" }');
+              e.preventDefault();
+            });
+            document.getElementById('_right').addEventListener('mousedown', (e) => {
+              //console.log('_right');
+              fetchPage(path[1], '{ "action": "right" }');
+              e.preventDefault();
+            });
+            document.getElementById('_right').addEventListener('click', (e) => {
+              //console.log('stop');
+              fetchPage(path[1], '{ "action": "stop" }');
+              e.preventDefault();
+            });
+            document.getElementById('_down').addEventListener('mousedown', (e) => {
+              //console.log('_down');
+              fetchPage(path[1], '{ "action": "down" }');
+              e.preventDefault();
+            });
+            document.getElementById('_down').addEventListener('click', (e) => {
+              //console.log('stop');
+              fetchPage(path[1], '{ "action": "stop" }');
+              e.preventDefault();
+            });
+          break;
           default:
             break;
         }
