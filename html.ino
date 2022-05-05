@@ -443,6 +443,7 @@ const char index_html[] PROGMEM = R"rawliteral(
                   e.preventDefault();
                 }
               }
+              document.getElementById('_' + obj.name).disabled = true;
               if (obj.name === 'upload') {
                 const fileInput = document.querySelector('#_file');
                 fileUpload(fileInput);
@@ -450,6 +451,7 @@ const char index_html[] PROGMEM = R"rawliteral(
               else {
                 fetchPage(path[1], serialize());
               }
+              document.getElementById('_' + obj.name).disabled = false;
             });
             break;
           case 'arrows':

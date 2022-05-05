@@ -225,9 +225,9 @@ void webserverSetup() {
     String json;
     json += "[";
     if (Update.hasError())
-      json += "{\"type\":\"title\",\"value\":\"Upload Failed\"}";
+      json += "{\"type\":\"title\",\"value\":\"Upload Failed\"},";
    else
-      json += "{\"type\":\"title\",\"value\":\"Upload Success\"}";
+      json += "{\"type\":\"title\",\"value\":\"Upload Success\"},";
 
     json += "{\"type\":\"file\",\"label\":\"File\",\"name\":\"file\",\"value\":\"\"},";
     json += "{\"type\":\"button\",\"label\":\"UPDATE\",\"name\":\"update\",\"value\":\"update\"}";
@@ -256,9 +256,9 @@ void webserverSetup() {
         String json;
         json += "[";
         if (Update.hasError())
-          json += "{\"type\":\"title\",\"value\":\"Upload Failed\"}";
+          json += "{\"type\":\"title\",\"value\":\"Upload Failed\"},";
        else
-          json += "{\"type\":\"title\",\"value\":\"Upload Success\"}";
+          json += "{\"type\":\"title\",\"value\":\"Upload Success\"},";
     
         json += "{\"type\":\"file\",\"label\":\"File\",\"name\":\"file\",\"value\":\"\"},";
         json += "{\"type\":\"button\",\"label\":\"UPDATE\",\"name\":\"update\",\"value\":\"update\"}";
