@@ -554,7 +554,7 @@ const char index_html[] PROGMEM = R"rawliteral(
       const hash = location.hash.split("#");
       if (hash[1]) {
         path = hash[1].split("/");
-        fetchPage(path[1], serialize());
+        fetchPage(path[1], '{}');
       }
     });
     function send() {
