@@ -86,7 +86,6 @@ void webserverSetup() {
     webServer.send(200, "application/json", json);
   });
   webServer.on("/config", HTTP_POST, []() {
-    Serial.println(webServer.arg("plain"));
     if (webServer.arg("plain") != "{}") {
       DynamicJsonDocument doc(1024);
       deserializeJson(doc, webServer.arg("plain").c_str());
