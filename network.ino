@@ -1,4 +1,4 @@
-#define APssid "SatelliteTracker-AP2"
+#define APssid "SatelliteTracker-AP"
 #define APpassword  "12345678"
 
 DNSServer dnsServer;

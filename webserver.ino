@@ -90,6 +90,9 @@ void webserverSetup() {
       DynamicJsonDocument doc(1024);
       deserializeJson(doc, webServer.arg("plain").c_str());
 
+      if (doc["ssid"]) strcpy(ssid, (const char*)doc["ssid"]);
+      if (doc["password"]) strcpy(password, (const char*)doc["password"]);
+
       if (doc["mpu9250_enable"]) mpu9250_enable = doc["mpu9250_enable"];
       if (doc["display_enable"]) display_enable = doc["display_enable"];
       if (doc["beep_enable"]) beep_enable = doc["beep_enable"];
@@ -123,6 +126,7 @@ void webserverSetup() {
       json += "[\"\",\"\"]";
     }
     json += "]},";
+    json += "{\"type\":\"text\",\"label\":\"Password\",\"name\":\"password\",\"value\":\"" + String(password) + "\"},";
 
     json += "{\"type\":\"title\",\"value\":\"Components\"},";
     json += "{\"type\":\"select\",\"label\":\"MPU9250\",\"name\":\"mpu9250_enable\",\"value\":\"" + String(mpu9250_enable) + "\",\"options\":[[\"0\",\"Disabled\"],[\"1\",\"Enabled\"]]},";

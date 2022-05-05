@@ -18,6 +18,8 @@
 
 #define APPNAME "SatelliteTracker v1.0"
 
+// eeprom
+#include <EEPROM.h>
 // network
 #include <ESP8266WiFi.h>
 #include <DNSServer.h>

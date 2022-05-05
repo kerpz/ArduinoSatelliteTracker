@@ -1,5 +1,3 @@
-#include <EEPROM.h>
-
 void loadConfig() {
   EEPROM.begin(512);
 
