@@ -427,42 +427,42 @@ const char index_html[] PROGMEM = R"rawliteral(
           case 'arrows':
             document.getElementById('_up').addEventListener('mousedown', (e) => {
               //console.log('_up');
-              fetchPage(path[1], '{ "action": "up" }');
+              fetchPage(path[1], '{ "action": "3" }');
               e.preventDefault();
             });
             document.getElementById('_up').addEventListener('click', (e) => {
               //console.log('stop');
-              fetchPage(path[1], '{ "action": "stop" }');
-              e.preventDefault();
-            });
-            document.getElementById('_left').addEventListener('mousedown', (e) => {
-              //console.log('_left');
-              fetchPage(path[1], '{ "action": "left" }');
-              e.preventDefault();
-            });
-            document.getElementById('_left').addEventListener('click', (e) => {
-              //console.log('stop');
-              fetchPage(path[1], '{ "action": "stop" }');
-              e.preventDefault();
-            });
-            document.getElementById('_right').addEventListener('mousedown', (e) => {
-              //console.log('_right');
-              fetchPage(path[1], '{ "action": "right" }');
-              e.preventDefault();
-            });
-            document.getElementById('_right').addEventListener('click', (e) => {
-              //console.log('stop');
-              fetchPage(path[1], '{ "action": "stop" }');
+              fetchPage(path[1], '{ "action": "0" }');
               e.preventDefault();
             });
             document.getElementById('_down').addEventListener('mousedown', (e) => {
               //console.log('_down');
-              fetchPage(path[1], '{ "action": "down" }');
+              fetchPage(path[1], '{ "action": "4" }');
               e.preventDefault();
             });
             document.getElementById('_down').addEventListener('click', (e) => {
               //console.log('stop');
-              fetchPage(path[1], '{ "action": "stop" }');
+              fetchPage(path[1], '{ "action": "0" }');
+              e.preventDefault();
+            });
+            document.getElementById('_left').addEventListener('mousedown', (e) => {
+              //console.log('_left');
+              fetchPage(path[1], '{ "action": "1" }');
+              e.preventDefault();
+            });
+            document.getElementById('_left').addEventListener('click', (e) => {
+              //console.log('stop');
+              fetchPage(path[1], '{ "action": "0" }');
+              e.preventDefault();
+            });
+            document.getElementById('_right').addEventListener('mousedown', (e) => {
+              //console.log('_right');
+              fetchPage(path[1], '{ "action": "2" }');
+              e.preventDefault();
+            });
+            document.getElementById('_right').addEventListener('click', (e) => {
+              //console.log('stop');
+              fetchPage(path[1], '{ "action": "0" }');
               e.preventDefault();
             });
           break;

@@ -242,13 +242,20 @@ void webserverSetup() {
     if (index + len == total) {
       DynamicJsonDocument doc(1024);
       deserializeJson(doc, data);
-  
+
       String json;
   
-      //if (doc["action"]) ESP.restart();
+      if (doc["action"]) motor_mode = doc["action"];
       
       json += "[";
       json += "{\"type\":\"title\",\"value\":\"Control\"},";
+      json += "{\"type\":\"table\",\"name\":\"status\",\"data\":[";
+      json += "[\"Yaw\",\""+String(yaw)+"\"],";
+      json += "[\"Pitch\",\""+String(pitch)+"\"],";
+      json += "[\"Roll\",\""+String(roll)+"\"],";
+      json += "[\"Temperature\",\""+String(temperature)+"\"],";
+      json += "[\"Motor\",\""+String(motor_mode)+"\"]";
+      json += "]},";
       json += "{\"type\":\"arrows\"}";
       json += "]";
       
@@ -283,7 +290,8 @@ void webserverSetup() {
     json += "{\"type\":\"button\",\"label\":\"UPDATE\",\"name\":\"update\",\"value\":\"update\"}";
     json += "]";
     request->send(200, "application/json", json);
-    ESP.restart();
+    Serial.println("Hit");
+    //ESP.restart();
   }, [](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
     //static uint16_t ptr = 0;
     //static char buffer[1024] = {0};
@@ -296,12 +304,16 @@ void webserverSetup() {
       if (!Update.begin(maxSketchSpace)) { //start with max available size
         Update.printError(Serial);
       }
+      Serial.println("started");
     }
+      Serial.print("len=");
+      Serial.println(len);
     if (Update.write(data, len) != len) {
       Update.printError(Serial);
     }
+      Serial.println("writed");
     if (final) {
-      //Serial.printf("UploadEnd: %s, %u B\n", filename.c_str(), index+len);
+      Serial.printf("UploadEnd: %s, %u B\n", filename.c_str(), index+len);
       if (Update.end(true)) { //true to set the size to the current progress
         Serial.printf("Update Success: %u\nRebooting...\n", index+len);
       } else {
@@ -312,7 +324,6 @@ void webserverSetup() {
       //response->addHeader("Access-Control-Allow-Origin", "*");
       //request->send(response);
     }
-    yield();
   });
   // Send a POST request to <IP>/post with a form field message set to <message>
   webServer.on("/post", HTTP_POST, [](AsyncWebServerRequest *request) {
