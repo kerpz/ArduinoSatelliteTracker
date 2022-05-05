@@ -276,6 +276,27 @@ const char index_html[] PROGMEM = R"rawliteral(
         }
       }
     }
+    const fileUpload = async (fileInput) => {
+      try {
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+        const response = await fetch(`http://${baseurl}/upload`, {
+          method: 'POST',
+          body: formData
+        });
+        //console.log(response);
+        elements = await response.json();
+        createPage(elements);
+      }
+      catch (error) {
+        console.log(error);
+        elements = [
+          { type: 'title', value: 'Information' },
+          { type: 'alert', value: 'Failed to connect to the device!' }
+        ]
+        createPage(elements);
+      }
+    }
     const createPage = async (elements) => {
       // UI
       let html = '';
@@ -413,59 +434,58 @@ const char index_html[] PROGMEM = R"rawliteral(
             document.getElementById('_' + obj.name).innerHTML = opts;
             break;
           case 'button':
-            document.getElementById('_' + obj.name).addEventListener('click', (e) => {
+            document.getElementById('_' + obj.name).addEventListener('click', async (e) => {
               // violation in ms
               if (obj.confirm) {
                 if (!confirm(obj.confirm)) {
                   // e.stopImmediatePropagation();
+                  return;
                   e.preventDefault();
                 }
               }
-              fetchPage(path[1], serialize());
+              if (obj.name === 'upload') {
+                const fileInput = document.querySelector('#_file');
+                fileUpload(fileInput);
+              }
+              else {
+                fetchPage(path[1], serialize());
+              }
             });
             break;
           case 'arrows':
             document.getElementById('_up').addEventListener('mousedown', (e) => {
-              //console.log('_up');
               fetchPage(path[1], '{ "action": "3" }');
               e.preventDefault();
             });
-            document.getElementById('_up').addEventListener('click', (e) => {
-              //console.log('stop');
+            document.getElementById('_up').addEventListener('mouseup', (e) => {
               fetchPage(path[1], '{ "action": "0" }');
               e.preventDefault();
             });
             document.getElementById('_down').addEventListener('mousedown', (e) => {
-              //console.log('_down');
               fetchPage(path[1], '{ "action": "4" }');
               e.preventDefault();
             });
-            document.getElementById('_down').addEventListener('click', (e) => {
-              //console.log('stop');
+            document.getElementById('_down').addEventListener('mouseup', (e) => {
               fetchPage(path[1], '{ "action": "0" }');
               e.preventDefault();
             });
             document.getElementById('_left').addEventListener('mousedown', (e) => {
-              //console.log('_left');
               fetchPage(path[1], '{ "action": "1" }');
               e.preventDefault();
             });
-            document.getElementById('_left').addEventListener('click', (e) => {
-              //console.log('stop');
+            document.getElementById('_left').addEventListener('mouseup', (e) => {
               fetchPage(path[1], '{ "action": "0" }');
               e.preventDefault();
             });
             document.getElementById('_right').addEventListener('mousedown', (e) => {
-              //console.log('_right');
               fetchPage(path[1], '{ "action": "2" }');
               e.preventDefault();
             });
-            document.getElementById('_right').addEventListener('click', (e) => {
-              //console.log('stop');
+            document.getElementById('_right').addEventListener('mouseup', (e) => {
               fetchPage(path[1], '{ "action": "0" }');
               e.preventDefault();
             });
-          break;
+            break;
           default:
             break;
         }

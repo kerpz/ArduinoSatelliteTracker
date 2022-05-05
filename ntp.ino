@@ -1,6 +1,3 @@
-#include <NTPClient.h>
-#include <WiFiUdp.h>
-
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org");
 

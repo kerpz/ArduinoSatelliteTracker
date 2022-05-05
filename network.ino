@@ -1,9 +1,6 @@
 #define APssid "SatelliteTracker-AP2"
 #define APpassword  "12345678"
 
-#include <ESP8266WiFi.h>
-#include <DNSServer.h>
-
 DNSServer dnsServer;
 
 /* Soft AP network parameters */

@@ -1,11 +1,5 @@
 #define SERVER_NAME "http://www.celestrak.com/satcat/tle.php?CATNR=25544"
 
-#include <ESP8266HTTPClient.h>
-#include <WiFiClientSecureBearSSL.h>
-// openssl s_client -connect api.thingspeak.com:443 | openssl x509 -fingerprint -noout
-//const uint8_t fingerprint[20] = {0x27, 0x18, 0x92, 0xDD, 0xA4, 0x26, 0xC3, 0x07, 0x09, 0xB9, 0x7A, 0xE6, 0xC5, 0x21, 0xB9, 0x5B, 0x48, 0xF7, 0x16, 0xE1};
-#include <Sgp4.h>
-
 Sgp4 sat;
 
 void trackerSetup() {

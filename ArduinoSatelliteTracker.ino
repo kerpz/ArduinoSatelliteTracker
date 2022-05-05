@@ -15,7 +15,24 @@
  - ArduinoJson 6.19.4
 */
 
+
 #define APPNAME "SatelliteTracker v1.0"
+
+// network
+#include <ESP8266WiFi.h>
+#include <DNSServer.h>
+// webserver
+#include <ESP8266WebServer.h>
+#include "ArduinoJson.h"
+// ntp
+#include <NTPClient.h>
+#include <WiFiUdp.h>
+// tracker
+#include <ESP8266HTTPClient.h>
+#include <WiFiClientSecureBearSSL.h>
+// openssl s_client -connect api.thingspeak.com:443 | openssl x509 -fingerprint -noout
+//const uint8_t fingerprint[20] = {0x27, 0x18, 0x92, 0xDD, 0xA4, 0x26, 0xC3, 0x07, 0x09, 0xB9, 0x7A, 0xE6, 0xC5, 0x21, 0xB9, 0x5B, 0x48, 0xF7, 0x16, 0xE1};
+#include <Sgp4.h>
 
 char ssid[32] = "";
 char password[32] = "";
@@ -89,8 +106,6 @@ void execEvery(int ms) {
     //Serial.println(epochTime);
     trackerLoop();
 
-    wsLoop();
-
     if (display_enable) displayLoop();
     //if (mpu6050_enable) mpu6050Loop();
     //if (motor_enable) motorLoop();
@@ -134,5 +149,5 @@ void loop() {
   if (motor_enable) motorLoop();
 
   networkLoop();
-  //webserverLoop();
+  webserverLoop();
 }
