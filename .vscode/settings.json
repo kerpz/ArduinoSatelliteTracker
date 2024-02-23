@@ -1,0 +1,11 @@
+{
+  "arduino.useArduinoCli": true,
+  "arduino.logLevel": "info",
+  "arduino.allowPDEFiletype": false,
+  "arduino.enableUSBDetection": true,
+  "arduino.disableTestingOpen": false,
+  "arduino.skipHeaderProvider": false,
+  "arduino.additionalUrls": [
+    "http://arduino.esp8266.com/stable/package_esp8266com_index.json"
+  ],
+}
