@@ -276,12 +276,8 @@ const char index_html[] PROGMEM = R"rawliteral(
                     createPage(elements);
                 }
                 catch (error) {
+                    console.log('error in fetch');
                     console.log(error);
-                    elements = [
-                        { type: 'title', value: 'Information' },
-                        { type: 'alert', value: 'Failed to connect to the device!' }
-                    ]
-                    createPage(elements);
                 }
             }
         }
@@ -297,12 +293,8 @@ const char index_html[] PROGMEM = R"rawliteral(
                 createPage(elements);
             }
             catch (error) {
+                console.log('error in upload');
                 console.log(error);
-                elements = [
-                    { type: 'title', value: 'Information' },
-                    { type: 'alert', value: 'Failed to connect to the device!' }
-                ]
-                createPage(elements);
             }
         }
         const createPage = async (elements) => {
