@@ -11,6 +11,8 @@ extern float sat_azimuth;
 extern float sat_elevation;
 extern float sat_distance;
 
+extern String catalog_number;
+
 void getTLE(String catalog_number);
 void trackerSetup();
 void trackerLoop();

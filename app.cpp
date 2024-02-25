@@ -98,7 +98,7 @@ void reverseEl()
   motor_mode_el = 2;
 }
 
-void setAz(int deg)
+void setAz(int deg) // 0 - 360
 {
   if (deg >= 0 && deg <= 360 && motor_mode_az == 0)
   {
@@ -116,7 +116,7 @@ void setAz(int deg)
   }
 }
 
-void setEl(int deg)
+void setEl(int deg) // 0 - 90
 {
   if (deg >= 0 && deg <= 90 && motor_mode_el == 0)
   {

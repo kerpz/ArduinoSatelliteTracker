@@ -186,7 +186,6 @@ void webserverSetup()
   webServer.on("/tracker", HTTP_POST, []()
                {
     byte refresh = 2;
-    String catalog_number = "25544";
 
     if (webServer.arg("plain") != "{}") {
       DynamicJsonDocument doc(1024);

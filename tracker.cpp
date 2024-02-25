@@ -12,6 +12,8 @@ float sat_azimuth;
 float sat_elevation;
 float sat_distance;
 
+String catalog_number = "25544";
+
 Sgp4 sat;
 
 String getValue(String data, char separator, int index)
@@ -123,18 +125,7 @@ void trackerLoop()
 
   if (auto_control)
   {
-    if (round(sat_elevation) >= 30) // visible ?
-    {
-      setAz(round(sat_azimuth));
-      setEl(round(sat_elevation));
-    }
-    else // not visible
-    {
-      // reset position
-      if (motor_az > 0)
-        setAz(0);
-      if (motor_el > 0)
-        setEl(0);
-    }
+    setAz(round(sat_azimuth));   // 0 - 360
+    setEl(round(sat_elevation)); // 0 - 90
   }
 }
