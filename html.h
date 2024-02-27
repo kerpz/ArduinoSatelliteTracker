@@ -124,10 +124,10 @@ const char index_html[] PROGMEM = R"rawliteral(
         textarea,
         input,
         select {
+            width: 100%;
             outline: 0;
             border: 1px solid #ccc;
             padding: 10px;
-            width: 100%;
             box-sizing: border-box;
         }
 
@@ -149,7 +149,7 @@ const char index_html[] PROGMEM = R"rawliteral(
             transition-duration: 0.4s;
             border: 0;
             color: #fff;
-            display: inline-block;
+            display: block;
             margin: 2px 0;
             padding: 10px 0px 11px;
             width: 100%;
@@ -173,35 +173,52 @@ const char index_html[] PROGMEM = R"rawliteral(
             cursor: not-allowed;
         }
 
-        label>* {
-            display: inline;
-        }
-
         form>* {
-            display: block;
             margin-bottom: 10px;
         }
 
-        /* .msg{background:#def;border-left:5px solid #59d;padding: 1.5em;} */
-        table {
-            display: table;
-            table-layout: fixed;
-            width: 100%;
+        .grid-container {
+            margin-top: 20px;
+            grid-template-columns: auto auto auto auto auto;
+            grid-gap: 5px;
+            align-items: center;
         }
 
-        table td {
-            padding: .5em;
+        .grid-container>div {
+            padding: .1em;
             text-align: left;
         }
 
-        table tbody>:nth-child(2n-1) {
-            background: #ddd;
+        .label {
+            grid-column: 1 / span 2;
         }
 
-        table th {
-            padding: .6em;
-            background: #aaa;
-            text-align: left;
+        .item {
+            grid-column: 3 / span 3;
+        }
+
+        .full {
+            grid-column: 1 / span 5;
+        }
+
+        .col1 {
+            grid-column: 1;
+        }
+
+        .col2 {
+            grid-column: 2;
+        }
+
+        .col3 {
+            grid-column: 3;
+        }
+
+        .col4 {
+            grid-column: 4;
+        }
+
+        .col5 {
+            grid-column: 5;
         }
 
         .card {
@@ -209,6 +226,33 @@ const char index_html[] PROGMEM = R"rawliteral(
             box-shadow: 2px 2px 12px 1px rgba(140, 140, 140, .5);
             padding: 15px 10px 15px 10px;
             margin: 20px;
+        }
+
+        .collapsible {
+            background-color: #F8F7F9;
+            color: #222;
+            width: 100%;
+            text-align: left;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .collapsible>span {
+            font-size: 16px;
+            float: right;
+        }
+
+        .collapsible:hover,
+        .collapsible:active,
+        .collapsible:focus {
+            background-color: #F8F7F9;
+        }
+
+        .alert {
+            padding: 10px;
+            font-size: 13px;
+            border-radius: 4px;
+            background-color: #d8d8d8;
         }
     </style>
 </head>
@@ -225,7 +269,6 @@ const char index_html[] PROGMEM = R"rawliteral(
             <ul>
                 <li><a href="#/system">System</a></li>
                 <li><a href="#/config">Config</a></li>
-                <li><a href="#/tracker">Tracker</a></li>
                 <li><a href="#/app">App</a></li>
                 <li><a href="#/firmware">Firmware</a></li>
             </ul>
@@ -234,17 +277,25 @@ const char index_html[] PROGMEM = R"rawliteral(
     <div class="container" id="main-content">
     </div>
     <script>
-        /*
-        let elements = [
-          { type: 'text', label:'Text (without value)', name: 'test1', value:'' },
-          { type: 'text', label:'Text (with value)', name: 'test2', value:'Test' },
-          { type: 'password', label:'Password', name: 'test3', value:'' },
-          { type: 'textarea', label:'Textarea', name: 'test4', value:'Hello World' },
-          { type: 'select', label:'Select', name: 'test5', options:[["1","1"],["2","2"]] },
-          { type: 'button', label:'Confirm', name: 'test6', confirm: 'Do you want to confirm?' disabled: 'false'},
-          { type: 'table', label:'Table', name: 'test7', head: ["N","N","N"], data:[["1","1","1"],["2","2","2"],["3","3","3"]] }
+        let test = [{
+            label: 'Group 1', name: 'group1', value: 1, elements: [
+                { type: 'alert', value: 'Hello World' },
+                { type: 'text', label: 'Key', value: 'key', attrib: 'disabled' },
+                { type: 'text', label: 'Text', name: 'text', value: 'text' },
+                { type: 'hidden', name: 'hidden', value: 'text' },
+                { type: 'password', label: 'Password', name: 'password', value: '' },
+                { type: 'textarea', label: 'Textarea', name: 'textarea', value: 'Hello World' },
+                { type: 'select', label: 'Select', name: 'select', options: [["1", "1"], ["2", "2"]] },
+                { type: 'button', label: 'Confirm', name: 'button', confirm: 'Do you want to confirm?', disabled: 'false' },
+                { type: 'button', label: 'Disabled', name: 'button', disabled: 'true' }
+            ]
+        },
+        {
+            label: 'Group 2', name: 'group2', value: 1, elements: [
+                { type: 'arrows' }
+            ]
+        }
         ]
-        */
 
         // global variables
         let websocket;
@@ -263,20 +314,34 @@ const char index_html[] PROGMEM = R"rawliteral(
             });
             return JSON.stringify(obj);
         }
-        const fetchPage = async (page, post) => {
+        const fetchPage = async (page, post, create = true) => {
             let elements = [];
             if (_reloadTimerId) clearTimeout(_reloadTimerId);
-            if (page) {
+            if (page !== 'test') {
                 try {
                     const response = await fetch(`http://${baseurl}/${page}`, {
                         method: post ? 'POST' : 'GET',
                         body: post ? post : undefined
                     });
                     elements = await response.json();
-                    createPage(elements);
+                    if (create) createPage(elements);
+                    else {
+                        elements.forEach((group) => {
+                            group.elements.forEach((obj) => {
+                                if (obj.type === 'text' && obj.attrib === 'disabled') {
+                                    document.getElementById('_' + obj.name).value = obj.value;
+                                }
+                                else if (obj.type === 'button' && obj.disabled === 'false') {
+                                    document.getElementById('_' + obj.name).disabled = false;
+                                }
+                                if (obj.type === 'refresh') {
+                                    _reloadTimerId = setTimeout(() => { fetchPage(path[1], serialize(), false); }, _updateInterval);
+                                }
+                            });
+                        });
+                    }
                 }
                 catch (error) {
-                    console.log('error in fetch');
                     console.log(error);
                 }
             }
@@ -293,194 +358,163 @@ const char index_html[] PROGMEM = R"rawliteral(
                 createPage(elements);
             }
             catch (error) {
-                console.log('error in upload');
-                console.log(error);
+                console.log('error in fileUpload');
             }
         }
-        const createPage = async (elements) => {
+        const send = (obj) => {
+            /*
+            let obj = {
+                test: 'hello',
+                test2: 'world'
+            };
+            */
+            websocket.send(JSON.stringify(obj));
+        }
+        const createPage = async (groups) => {
             // UI
             let html = '';
-            html += '<div class="card">';
             html += '<form>';
-            elements.forEach((obj) => {
-                switch (obj.type) {
-                    case 'hidden':
-                        html += '<input type="' + obj.type + '" id="_' + obj.name + '" name="' + obj.name + '" value="' + obj.value + '" />';
-                        break;
-                    case 'text':
-                    case 'password':
-                    case 'file':
-                        html += '<p>';
-                        html += '<label for="_' + obj.name + '">' + obj.label + '</label>';
-                        html += '<input type="' + obj.type + '" id="_' + obj.name + '" name="' + obj.name + '" value="' + obj.value + '" autocomplete="off" ' + obj.attrib + ' />';
-                        html += '</p>';
-                        break;
-                    case 'textarea':
-                        html += '<p>';
-                        html += '<label for="_' + obj.name + '">' + obj.label + '</label>';
-                        html += '<textarea rows="4" id="_' + obj.name + '" name="' + obj.name + '">' + obj.value + '</textarea>';
-                        html += '</p>';
-                        break;
-                    case 'refresh':
-                    case 'select':
-                        html += '<p>';
-                        html += '<label for="_' + obj.name + '">' + obj.label + '</label>';
-                        html += '<select name="' + obj.name + '" id="_' + obj.name + '">';
-                        html += '</select>';
-                        html += '</p>';
-                        break;
-                    case 'button':
-                    case 'submit':
-                        html += '<p>';
-                        html += '<button type="' + obj.type + '" name="' + obj.name + '" id="_' + obj.name + '" value="' + obj.value + '" ' + (obj.disabled === 'true' ? 'disabled' : '') + '>' + obj.label + '</button>';
-                        html += '</p>';
-                        break;
-                    case 'table':
-                        html += '<p>';
-                        html += '<table>';
-                        if (obj.head) {
-                            html += '<thead>';
-                            for (let j = 0; j < obj.head.length; ++j) {
-                                html += '<th>' + obj.head[j] + '</th>';
-                            }
-                            html += '</thead>';
-                        }
-                        html += '<tbody>';
-                        for (let i = 0; i < obj.data.length; ++i) {
-                            html += '<tr>';
-                            for (let j = 0; j < obj.data[i].length; ++j) {
-                                html += '<td><span>' + obj.data[i][j] + '</span></td>';
-                            }
-                            html += '</tr>';
-                        }
-                        html += '</tbody>';
-                        if (obj.foot) {
-                            html += '<tfoot>';
-                            for (let j = 0; j < obj.foot.length; ++j) {
-                                html += '<td>' + obj.foot[j] + '</td>';
-                            }
-                            html += '</tfoot>';
-                        }
-                        html += '</table>';
-                        html += '</p>';
-                        break;
-                    case 'title':
-                        html += '<h3>' + obj.value + '</h3>';
-                        break;
-                    case 'alert':
-                        html += '<p>' + obj.value + '</p>';
-                        break;
-                    case 'arrows':
-                        html += '<p>';
-                        html += '<table>';
-                        html += '<tbody>';
-                        html += '<tr>';
-                        html += '<td></td><td></td>';
-                        html += '<td><button id="_' + obj.name + '_up">U</button></td>';
-                        html += '<td></td><td></td>';
-                        html += '</tr>';
-                        html += '<tr>';
-                        html += '<td></td>';
-                        html += '<td><button id="_' + obj.name + '_left">L</button></td>';
-                        html += '<td><button id="_' + obj.name + '_enter">E</button></td>';
-                        html += '<td><button id="_' + obj.name + '_right">R</button></td>';
-                        html += '<td></td>';
-                        html += '</tr>';
-                        html += '<tr>';
-                        html += '<td></td><td></td>';
-                        html += '<td><button id="_' + obj.name + '_down">D</button></td>';
-                        html += '<td></td><td></td>';
-                        html += '</tr>';
-                        html += '</tbody>';
-                        html += '</table>';
-                        html += '</p>';
-                    default:
-                        break;
-                }
+            groups.forEach((group) => {
+                html += '<div class="card">';
+                html += '<button type="button" class="collapsible" id="_' + group.name + '_button">' + group.label + '<span>' + (group.value ? '-' : '+') + '</span></button>';
+                html += '<input type="hidden" name="' + group.name + '" id="_' + group.name + '" value=' + group.value + ' />';
+                html += '<div class="grid-container" id="_' + group.name + '_content">';
+                group.elements.forEach((obj) => {
+                    switch (obj.type) {
+                        case 'hidden':
+                            html += '<input type="' + obj.type + '" id="_' + obj.name + '" name="' + obj.name + '" value="' + obj.value + '" />';
+                            break;
+                        case 'text':
+                        case 'password':
+                        case 'file':
+                            html += '<div class="label">' + obj.label + '</div>';
+                            html += '<div class="item"><input type="' + obj.type + '" id="_' + obj.name + '" name="' + obj.name + '" value="' + obj.value + '" autocomplete="off" ' + (obj.accept ? ' accept="' + obj.accept + '" ' : '') + (obj.attrib ? obj.attrib : '') + ' /></div>';
+                            break;
+                        case 'textarea':
+                            html += '<div class="label">' + obj.label + '</div>';
+                            html += '<div class="item"><textarea rows="4" id="_' + obj.name + '" name="' + obj.name + '">' + obj.value + '</textarea></div>';
+                            break;
+                        case 'refresh':
+                        case 'select':
+                            html += '<div class="label">' + obj.label + '</div>';
+                            html += '<div class="item"><select name="' + obj.name + '" id="_' + obj.name + '"></select></div>';
+                            break;
+                        case 'button':
+                        case 'submit':
+                            html += '<div class="label"></div>';
+                            html += '<div class="item"><button type="' + obj.type + '" name="' + obj.name + '" id="_' + obj.name + '" value="' + obj.value + '" ' + (obj.disabled === 'true' ? 'disabled' : '') + '>' + obj.label + '</button></div>';
+                            break;
+                        case 'arrows':
+                            html += '<div class="col3"><button id="_' + obj.name + '_up">U</button></div>';
+                            html += '<div class="col2"><button id="_' + obj.name + '_left">L</button></div>';
+                            html += '<div class="col3"><button id="_' + obj.name + '_enter">E</button></div>';
+                            html += '<div class="col4"><button id="_' + obj.name + '_right">R</button></div>';
+                            html += '<div class="col3"><button id="_' + obj.name + '_down">D</button></div>';
+                            break;
+                        case 'alert':
+                            html += '<div class="full"><div class="alert">' + obj.value + '</div></div>';
+                            break;
+                        default:
+                            break;
+                    }
+                });
+                html += '</div>';
+                html += '</div>';
             });
             html += '</form>';
-            html += '</div>';
             document.getElementById('main-content').innerHTML = html;
             // Scripts
-            let opts = '';
-            elements.forEach((obj) => {
-                switch (obj.type) {
-                    case 'refresh':
-                        // populate options
-                        obj.options = [];
-                        for (let i = 0; i < 60; i++) {
-                            obj.options.push([i, i]);
-                        }
-                        elements.forEach((obj) => {
-                            if (obj.type === 'text' || obj.type === 'textarea' || obj.type === 'select' || obj.type === 'refresh') {
-                                document.getElementById('_' + obj.name).addEventListener('focusin', (e) => {
-                                    if (_reloadTimerId) clearTimeout(_reloadTimerId);
-                                });
-                                document.getElementById('_' + obj.name).addEventListener('focusout', (e) => {
-                                    _reloadTimerId = setTimeout(() => { fetchPage(path[1], serialize()); }, _updateInterval);
-                                });
+            groups.forEach((group) => {
+                group.elements.forEach((obj) => {
+                    const el = document.getElementById('_' + obj.name);
+                    switch (obj.type) {
+                        case 'refresh':
+                            // populate options
+                            obj.options = [];
+                            for (let i = 0; i < 60; i++) {
+                                obj.options.push([i, i]);
                             }
-                        });
-                        document.getElementById('_' + obj.name).addEventListener('change', (e) => {
-                            _updateInterval = e.target.value * 1000;
-                            document.getElementById('_' + obj.name).blur(); // unfocus
-                        });
-                        if (_updateInterval > 0) _reloadTimerId = setTimeout(() => { fetchPage(path[1], serialize()); }, _updateInterval);
-                    case 'select':
-                        let opts = '';
-                        for (let j = 0; j < obj.options.length; ++j) {
-                            let a = obj.options[j];
-                            if (a.length == 1) a.push(a[0]);
-                            opts += '<option value="' + a[0] + '"' + ((a[0] == obj.value) ? ' selected' : '') + '>' + a[1] + '</option>';
-                        }
-                        document.getElementById('_' + obj.name).innerHTML = opts;
-                        break;
-                    case 'button':
-                        document.getElementById('_' + obj.name).addEventListener('click', async (e) => {
-                            // e.stopImmediatePropagation();
-                            e.preventDefault();
-                            document.getElementById('_' + obj.name).disabled = true;
-                            // violation in ms
-                            if (obj.confirm) {
-                                if (!confirm(obj.confirm)) {
-                                    return;
+                            _updateInterval = parseInt(obj.value) * 1000;
+                            group.elements.forEach((obj) => {
+                                if (obj.type === 'text' || obj.type === 'textarea' || obj.type === 'select' || obj.type === 'refresh') {
+                                    const _el = document.getElementById('_' + obj.name);
+                                    _el.addEventListener('focusin', (e) => {
+                                        if (_reloadTimerId) clearTimeout(_reloadTimerId);
+                                    });
+                                    _el.addEventListener('focusout', (e) => {
+                                        _reloadTimerId = setTimeout(() => { fetchPage(path[1], serialize(), false); }, _updateInterval);
+                                    });
                                 }
+                            });
+                            el.addEventListener('change', (e) => {
+                                _updateInterval = e.target.value * 1000;
+                                el.blur(); // unfocus
+                            });
+                            if (_updateInterval > 0) _reloadTimerId = setTimeout(() => { fetchPage(path[1], serialize(), false); }, _updateInterval);
+                        case 'select':
+                            let opts = '';
+                            for (let j = 0; j < obj.options.length; ++j) {
+                                let a = obj.options[j];
+                                if (a.length == 1) a.push(a[0]);
+                                opts += '<option value="' + a[0] + '"' + ((a[0] == obj.value) ? ' selected' : '') + '>' + a[1] + '</option>';
                             }
-                            if (obj.name === 'upload') {
-                                const fileInput = document.querySelector('#_file');
-                                await fileUpload(fileInput);
-                            }
-                            else {
-                                let inObj = {};
-                                inObj[obj.name] = obj.value;
-                                await fetchPage(path[1], serialize(inObj));
-                            }
-                        });
-                        break;
-                    case 'arrows':
-                        document.getElementById('_' + obj.name + '_up').addEventListener('click', async (e) => {
-                            e.preventDefault();
-                            await fetchPage(path[1], '{"' + obj.name + '":"1"}');
-                        });
-                        document.getElementById('_' + obj.name + '_down').addEventListener('click', async (e) => {
-                            e.preventDefault();
-                            await fetchPage(path[1], '{"' + obj.name + '":"2"}');
-                        });
-                        document.getElementById('_' + obj.name + '_left').addEventListener('click', async (e) => {
-                            e.preventDefault();
-                            await fetchPage(path[1], '{ "' + obj.name + '":"3"}');
-                        });
-                        document.getElementById('_' + obj.name + '_right').addEventListener('click', async (e) => {
-                            e.preventDefault();
-                            await fetchPage(path[1], '{"' + obj.name + '":"4"}');
-                        });
-                        document.getElementById('_' + obj.name + '_enter').addEventListener('click', async (e) => {
-                            e.preventDefault();
-                            await fetchPage(path[1], '{"' + obj.name + '":"5"}');
-                        });
-                    default:
-                        break;
-                }
+                            el.innerHTML = opts;
+                            break;
+                        case 'button':
+                            el.addEventListener('click', async (e) => {
+                                // e.stopImmediatePropagation();
+                                e.preventDefault();
+                                el.disabled = true;
+                                // violation in ms
+                                if (obj.confirm) {
+                                    if (!confirm(obj.confirm)) {
+                                        return;
+                                    }
+                                }
+                                if (obj.name === 'upload') {
+                                    const fileInput = document.querySelector('#_file');
+                                    await fileUpload(fileInput);
+                                }
+                                else {
+                                    let inObj = {};
+                                    inObj[obj.name] = obj.value;
+                                    await fetchPage(path[1], serialize(inObj));
+                                }
+                            });
+                            break;
+                        case 'arrows':
+                            document.getElementById('_' + obj.name + '_up').addEventListener('click', async (e) => {
+                                e.preventDefault();
+                                await fetchPage(path[1], '{"' + obj.name + '":"1"}');
+                            });
+                            document.getElementById('_' + obj.name + '_down').addEventListener('click', async (e) => {
+                                e.preventDefault();
+                                await fetchPage(path[1], '{"' + obj.name + '":"2"}');
+                            });
+                            document.getElementById('_' + obj.name + '_left').addEventListener('click', async (e) => {
+                                e.preventDefault();
+                                await fetchPage(path[1], '{ "' + obj.name + '":"3"}');
+                            });
+                            document.getElementById('_' + obj.name + '_right').addEventListener('click', async (e) => {
+                                e.preventDefault();
+                                await fetchPage(path[1], '{"' + obj.name + '":"4"}');
+                            });
+                            document.getElementById('_' + obj.name + '_enter').addEventListener('click', async (e) => {
+                                e.preventDefault();
+                                await fetchPage(path[1], '{"' + obj.name + '":"5"}');
+                            });
+                        default:
+                            break;
+                    }
+                });
+
+                document.getElementById('_' + group.name + '_content').style.display = (group.value) ? 'grid' : 'none';
+                document.getElementById('_' + group.name + '_button').addEventListener('click', async (e) => {
+                    const newValue = (group.value) ? 0 : 1;
+                    document.getElementById('_' + group.name).value = newValue;
+                    group.value = newValue;
+                    createPage(groups);
+                });
             });
         }
         window.addEventListener('load', (e) => {
@@ -488,18 +522,10 @@ const char index_html[] PROGMEM = R"rawliteral(
             console.log(`WebSocket connection to ws://${baseurl}:81`);
             websocket = new WebSocket(`ws://${baseurl}:81`);
             websocket.onopen = (e) => {
-                elements = [
-                  { type: 'title', value: 'Information' },
-                  { type: 'alert', value: 'Websocket connected to the device!' }
-                ]
-                createPage(elements);
+                console.log('onopen');
             };
             websocket.onclose = (e) => {
-                elements = [
-                  { type: 'title', value: 'Information' },
-                  { type: 'alert', value: 'Websocket failed to connect to the device!' }
-                ]
-                createPage(elements);
+                console.log('onclose');
                 // setTimeout(initWebSocket, 2000);
             };
             websocket.onmessage = (e) => {
@@ -511,8 +537,9 @@ const char index_html[] PROGMEM = R"rawliteral(
             const hash = location.hash.split("#");
             if (hash[1]) {
                 path = hash[1].split("/");
-                if (path[1] && path[1] !== '') {
-                    fetchPage(path[1], serialize());
+                if (path[1]) {
+                    if (path[1] === 'test') createPage(test);
+                    else if (path[1] !== '') fetchPage(path[1], serialize());
                 }
             }
             else {
@@ -526,13 +553,7 @@ const char index_html[] PROGMEM = R"rawliteral(
                 fetchPage(path[1], '{}');
             }
         });
-        function send() {
-            let obj = {
-                test: 'hello',
-                test2: 'world'
-            };
-            websocket.send(JSON.stringify(obj));
-        }
+
         const toggleButton = document.getElementsByClassName('toggle-button')[0]
         const navLinks = document.getElementsByClassName('nav-links')[0]
         toggleButton.addEventListener('click', () => {
