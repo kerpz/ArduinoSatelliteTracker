@@ -3,6 +3,7 @@
 
 #include "html.h"
 #include "tracker.h"
+#include "analog.h"
 #include "mpu9250.h"
 #include "app.h"
 

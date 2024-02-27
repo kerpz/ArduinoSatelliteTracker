@@ -151,7 +151,6 @@ void appSetup()
 
 void appLoop()
 {
-
   if (motor_mode_az > 0 && targetTimeAz != 0 && targetTimeAz <= millis())
     stopAz(); // stop
   if (motor_mode_el > 0 && targetTimeEl != 0 && targetTimeEl <= millis())

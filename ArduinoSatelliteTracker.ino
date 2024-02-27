@@ -21,6 +21,7 @@
 #include "network.h"
 #include "ntp.h"
 #include "display.h"
+#include "analog.h"
 #include "tracker.h"
 #include "webserver.h"
 // #include "websocket.h"
@@ -37,14 +38,6 @@ void execEvery(int ms)
 
     ntpLoop();
     // Serial.println(epochTime);
-
-    if (display_enable)
-      displayLoop();
-    if (mpu9250_enable)
-      mpu9250Loop();
-    // if (motor_enable) motorLoop();
-    if (tracker_enable)
-      trackerLoop();
 
     if (sTick >= 59)
     {
@@ -74,13 +67,12 @@ void setup()
   webserverSetup();
   // websocketSetup();
 
-  // if (beep_enable)
+  if (analog_enable)
+    analogSetup();
+  // if (display_enable)
   //   displaySetup();
-  // if (analog_enable)
-  //   analogSetup();
-  if (display_enable)
-    displaySetup();
-  // if (ads1115_enable) ads1115Setup();
+  //  if (ads1115_enable)
+  //   ads1115Setup();
   if (mpu9250_enable)
     mpu9250Setup();
   if (tracker_enable)
@@ -95,10 +87,12 @@ void loop()
 {
   execEvery(1000);
 
-  // if (analog_enable) analogLoop();
+  if (analog_enable)
+    analogLoop();
   // if (ads1115_enable) ads1115Loop();
   // if (mpu9250_enable) mpu9250Loop();
-  // if (motor_enable) motorLoop();
+  // if (display_enable)
+  //  displayLoop();
 
   networkLoop();
   webserverLoop();

@@ -27,6 +27,11 @@ void displaySetup()
 
 void displayLoop()
 {
+  // static unsigned long msTick = millis();
+  // if (millis() - msTick >= 500) // 500ms refresh rate
+  //{
+  //   msTick = millis();
+
   display.clearDisplay();
   display.setCursor(0, 0);
   display.print("Y: ");
@@ -38,4 +43,5 @@ void displayLoop()
   display.print("T: ");
   display.println(temperature);
   display.display();
+  //}
 }

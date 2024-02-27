@@ -275,6 +275,12 @@ void webserverSetup()
     String disabled = "false";
     
     json += "[";
+    if (analog_enable) {
+      json += "{\"label\":\"Analog Sensor\",\"name\":\"expand_analog\",\"value\":1,\"elements\":[";
+      json += "{\"type\":\"text\",\"label\":\"Volt\",\"name\":\"device_voltage\",\"value\":\""+String(device_voltage)+"\",\"attrib\":\"disabled\"}";
+      json += "]},";
+    }
+
     if (mpu9250_enable) {
       json += "{\"label\":\"MPU9250\",\"name\":\"expand_mpu9250\",\"value\":"+String(expand_mpu9250)+",\"elements\":[";
       json += "{\"type\":\"text\",\"label\":\"Yaw\",\"name\":\"yaw\",\"value\":\""+String(yaw)+"\",\"attrib\":\"disabled\"},";
