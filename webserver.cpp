@@ -328,7 +328,7 @@ void webserverSetup()
     json += "{\"type\":\"arrows\",\"name\":\"actionMotor\"}";
     json += "]},";
 
-    json += "{\"label\":\"Page\",\"name\":\"page\",\"value\":"+String(expand_page)+",\"elements\":[";
+    json += "{\"label\":\"Page\",\"name\":\"expand_page\",\"value\":"+String(expand_page)+",\"elements\":[";
     json += "{\"type\":\"refresh\",\"label\":\"Refresh\",\"name\":\"refresh\",\"value\":"+String(refresh)+"}";
     json += "]}";
 
