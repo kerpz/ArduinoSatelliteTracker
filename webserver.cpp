@@ -179,7 +179,7 @@ void webserverSetup()
     json += "{\"type\":\"text\",\"label\":\"Declination\",\"name\":\"declination\",\"value\":\"" + String(declination) + "\"}";
     json += "]},";
 
-    json += "{\"label\":\"tracker\",\"name\":\"expand_tracker\",\"value\":1,\"elements\":[";
+    json += "{\"label\":\"Tracker\",\"name\":\"expand_tracker\",\"value\":1,\"elements\":[";
     json += "{\"type\":\"select\",\"label\":\"Tracker\",\"name\":\"tracker_enable\",\"value\":\"" + String(tracker_enable) + "\",\"options\":[[\"0\",\"Disabled\"],[\"1\",\"Enabled\"]]},";
     json += "{\"type\":\"text\",\"label\":\"TLE Name\",\"name\":\"tle_name\",\"value\":\"" + String(tle_name) + "\"},";
     json += "{\"type\":\"text\",\"label\":\"TLE Line1\",\"name\":\"tle_line1\",\"value\":\"" + String(tle_line1) + "\"},";
@@ -223,6 +223,8 @@ void webserverSetup()
         if (action == 5) { // enter
           stopAz();
           stopEl();
+          motor_az = 0.0;
+          motor_el = 0.0;
         }
         else if (action == 1) forwardEl(); // up
         else if (action == 2) reverseEl(); // down
