@@ -19,37 +19,9 @@
 
 #include "eeprom.h"
 #include "network.h"
-#include "ntp.h"
-#include "display.h"
-#include "analog.h"
-#include "tracker.h"
 #include "webserver.h"
 // #include "websocket.h"
 #include "app.h"
-
-void execEvery(int ms)
-{
-  static unsigned long msTick = millis();
-  static uint8_t sTick;
-
-  if (millis() - msTick >= ms)
-  { // run every N ms
-    msTick = millis();
-
-    ntpLoop();
-    // Serial.println(epochTime);
-
-    if (sTick >= 59)
-    {
-      sTick = 0;
-      run_time++;
-    }
-    else
-    {
-      sTick++;
-    }
-  }
-}
 
 void setup()
 {
@@ -63,20 +35,7 @@ void setup()
   loadConfig();
 
   networkSetup();
-  ntpSetup();
   webserverSetup();
-  // websocketSetup();
-
-  if (analog_enable)
-    analogSetup();
-  // if (display_enable)
-  //   displaySetup();
-  //  if (ads1115_enable)
-  //   ads1115Setup();
-  if (mpu9250_enable)
-    mpu9250Setup();
-  if (tracker_enable)
-    trackerSetup();
 
   appSetup();
 
@@ -85,18 +44,8 @@ void setup()
 
 void loop()
 {
-  execEvery(1000);
-
-  if (analog_enable)
-    analogLoop();
-  // if (ads1115_enable) ads1115Loop();
-  // if (mpu9250_enable) mpu9250Loop();
-  // if (display_enable)
-  //  displayLoop();
-
   networkLoop();
   webserverLoop();
-  // websocketLoop();
 
   appLoop();
 }

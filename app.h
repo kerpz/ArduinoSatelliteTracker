@@ -2,8 +2,15 @@
 #define APP_H
 
 #include "eeprom.h"
+#include "ntp.h"
+#include "analog.h"
+#include "display.h"
+// #include "post.h"
+#include "tracker.h"
+#include "mpu9250.h"
 
 #define APPNAME "Satellite v1.0"
+#define APPCODE "sat"
 
 #define APssid "Satellite-AP"
 #define APpassword "12345678"
@@ -22,14 +29,13 @@ extern uint16_t run_time;
 
 // timing
 extern int timezone;
-extern unsigned long epoch;
+extern uint32_t epoch;
 extern uint8_t second;
 extern uint8_t minute;
 extern uint8_t hour;
 extern uint8_t day;
 extern uint8_t month;
 extern uint16_t year;
-extern char datetime[32];
 
 // for manual control / calibration
 void stopAz();

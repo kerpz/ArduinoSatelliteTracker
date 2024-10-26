@@ -59,8 +59,8 @@ void networkSetup()
     }
   }
 
-  Serial.print("Starting MDNS (tracker.local) ... ");
-  Serial.println(MDNS.begin("tracker") ? "Success." : "Failed!");
+  Serial.print("Starting MDNS (" + String(APPCODE) + ".local) ... ");
+  Serial.println(MDNS.begin(APPCODE) ? "Success." : "Failed!");
   MDNS.addService("http", "tcp", 80);
 }
 

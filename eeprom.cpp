@@ -72,6 +72,10 @@ void loadConfig()
     EEPROM.get(263, auto_control); // 1
     Serial.println("Done");
   }
+  else
+  {
+    saveConfig();
+  }
 
   EEPROM.end();
 }

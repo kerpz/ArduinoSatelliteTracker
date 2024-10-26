@@ -103,7 +103,7 @@ void trackerLoop()
   // int _minute;
   // double _second;
 
-  sat.findsat(epoch);
+  sat.findsat((unsigned long)epoch);
   // invjday(sat.satJd, timezone, true, _year, _month, _day, _hour, _minute, _second);
   // Serial.println(String(day) + '/' + String(mon) + '/' + String(year) + ' ' + String(hr) + ':' + String(minute) + ':' + String(sec));
   // Serial.println("azimuth = " + String(sat.satAz) + " elevation = " + String(sat.satEl) + " distance = " + String(sat.satDist));
