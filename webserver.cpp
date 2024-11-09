@@ -212,7 +212,8 @@ void webserverSetup()
     byte expand_motor = 1;
     byte expand_motor1 = 1;
     byte expand_motor2 = 1;
-    byte expand_page = 1;
+    byte expand_errors = 0;
+    byte expand_page = 0;
 
     if (webServer.arg("plain") != "{}") {
       DynamicJsonDocument doc(1024);
@@ -263,6 +264,8 @@ void webserverSetup()
       if (doc["expand_motor1"]) expand_motor1 = doc["expand_motor1"];
       if (doc["expand_motor2"]) expand_motor2 = doc["expand_motor2"];
       if (doc["change_satellite"]) change_satellite = doc["change_satellite"];
+      if (doc["expand_errors"]) expand_errors = doc["expand_errors"];
+      if (doc["expand_page"]) expand_page = doc["expand_page"];
 
       if (doc["update"]) {
         if (doc["catalog_number"]) catalog_number = String(doc["catalog_number"]);
@@ -279,7 +282,7 @@ void webserverSetup()
     json += "[";
     if (analog_enable) {
       json += "{\"label\":\"Analog Sensor\",\"name\":\"expand_analog\",\"value\":1,\"elements\":[";
-      json += "{\"type\":\"text\",\"label\":\"Volt\",\"name\":\"device_voltage\",\"value\":\""+String(device_voltage)+"\",\"attrib\":\"disabled\"}";
+      json += "{\"type\":\"text\",\"label\":\"Volt\",\"name\":\"device_voltage\",\"value\":\""+String(a_voltage)+"\",\"attrib\":\"disabled\"}";
       json += "]},";
     }
 
@@ -334,6 +337,11 @@ void webserverSetup()
 
     json += "{\"label\":\"Motor Control 2\",\"name\":\"expand_motor2\",\"value\":"+String(expand_motor2)+",\"elements\":[";
     json += "{\"type\":\"arrows\",\"name\":\"actionMotor\"}";
+    json += "]},";
+
+    json += "{\"label\":\"Error\",\"name\":\"expand_errors\",\"value\":"+String(expand_errors)+",\"elements\":[";
+    json += "{\"type\":\"text\",\"label\":\"Get\",\"name\":\"get_error\",\"value\":\""+String(get_error)+"\",\"attrib\":\"disabled\"}";
+    json += "{\"type\":\"text\",\"label\":\"Http Code\",\"name\":\"http_code\",\"value\":\""+String(http_code)+"\",\"attrib\":\"disabled\"}";
     json += "]},";
 
     json += "{\"label\":\"Page\",\"name\":\"expand_page\",\"value\":"+String(expand_page)+",\"elements\":[";

@@ -14,6 +14,9 @@ float sat_distance;
 
 String catalog_number = "25544";
 
+uint16_t get_error = 0;
+int http_code = 0;
+
 Sgp4 sat;
 
 String getValue(String data, char separator, int index)
@@ -64,13 +67,17 @@ void getTLE(String catalog_number)
         line3.toCharArray(tle_line2, 70);
 
         sat.init(tle_name, tle_line1, tle_line2); // initialize satellite parameters
-
-        http.end();
-        return;
+      }
+      else
+      {
+        Serial.println("failed");
+        // Serial.printf("[HTTP] POST... failed, error: %s\n", http.errorToString(httpCode).c_str());
+        // if (get_error < 65500)
+        //  get_error++;
+        http_code = httpCode;
       }
       http.end();
     }
-    Serial.println("failed");
   }
 }
 

@@ -13,6 +13,9 @@ extern float sat_distance;
 
 extern String catalog_number;
 
+extern uint16_t get_error;
+extern int http_code;
+
 void getTLE(String catalog_number);
 void trackerSetup();
 void trackerLoop();
