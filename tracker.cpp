@@ -72,11 +72,11 @@ void getTLE(String catalog_number)
       {
         Serial.println("failed");
         // Serial.printf("[HTTP] POST... failed, error: %s\n", http.errorToString(httpCode).c_str());
-        // if (get_error < 65500)
-        //  get_error++;
-        http_code = httpCode;
+        if (get_error < 65500)
+          get_error++;
       }
       http.end();
+      http_code = httpCode;
     }
   }
 }

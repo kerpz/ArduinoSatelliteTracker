@@ -340,7 +340,7 @@ void webserverSetup()
     json += "]},";
 
     json += "{\"label\":\"Error\",\"name\":\"expand_errors\",\"value\":"+String(expand_errors)+",\"elements\":[";
-    json += "{\"type\":\"text\",\"label\":\"Get\",\"name\":\"get_error\",\"value\":\""+String(get_error)+"\",\"attrib\":\"disabled\"}";
+    json += "{\"type\":\"text\",\"label\":\"Get\",\"name\":\"get_error\",\"value\":\""+String(get_error)+"\",\"attrib\":\"disabled\"},";
     json += "{\"type\":\"text\",\"label\":\"Http Code\",\"name\":\"http_code\",\"value\":\""+String(http_code)+"\",\"attrib\":\"disabled\"}";
     json += "]},";
 
