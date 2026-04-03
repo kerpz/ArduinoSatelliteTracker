@@ -5,15 +5,12 @@
 #include "ntp.h"
 #include "analog.h"
 #include "display.h"
-// #include "post.h"
+#include "post.h"
 #include "tracker.h"
 #include "mpu9250.h"
 
 #define APPNAME "Satellite v1.0"
 #define APPCODE "sat"
-
-#define APssid "Satellite-AP"
-#define APpassword "12345678"
 
 // motor part
 extern uint8_t motor_mode_az;

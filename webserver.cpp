@@ -61,7 +61,7 @@ void webserverSetup()
     json += "{\"label\":\"Wifi AP\",\"name\":\"expand_wifiap\",\"value\":"+String(expand_wifiap)+",\"elements\":[";
     json += "{\"type\":\"text\",\"label\":\"AP MAC\",\"name\":\"ap_mac\",\"value\":\""+WiFi.softAPmacAddress()+"\",\"attrib\":\"disabled\"},";
     json += "{\"type\":\"text\",\"label\":\"AP Address\",\"name\":\"ap_address\",\"value\":\""+WiFi.softAPIP().toString()+"\",\"attrib\":\"disabled\"},";
-    json += "{\"type\":\"text\",\"label\":\"AP SSID\",\"name\":\"ap_ssid\",\"value\":\""+String(APssid)+"\",\"attrib\":\"disabled\"},";
+    json += "{\"type\":\"text\",\"label\":\"AP SSID\",\"name\":\"ap_ssid\",\"value\":\""+String(ap_ssid)+"\",\"attrib\":\"disabled\"},";
     json += "{\"type\":\"text\",\"label\":\"Connected Devices\",\"name\":\"connected_devices\",\"value\":\""+String(WiFi.softAPgetStationNum())+"\",\"attrib\":\"disabled\"}";
     json += "]},";
     json += "{\"label\":\"Wifi Station\",\"name\":\"expand_wifista\",\"value\":"+String(expand_wifista)+",\"elements\":[";
@@ -112,33 +112,40 @@ void webserverSetup()
       DynamicJsonDocument doc(1024);
       deserializeJson(doc, webServer.arg("plain").c_str());
 
-      if (doc["update"]) {
-        if (doc["ssid"]) strcpy(ssid, (const char*)doc["ssid"]);
-        if (doc["password"]) strcpy(password, (const char*)doc["password"]);
+      if (doc["ap_ssid"]) strcpy(ap_ssid, (const char*)doc["ap_ssid"]);
+      if (doc["ap_key"]) strcpy(ap_key, (const char*)doc["ap_key"]);
 
-        if (doc["beep_enable"]) beep_enable = doc["beep_enable"];
-        if (doc["analog_enable"]) analog_enable = doc["analog_enable"];
-        if (doc["display_enable"]) display_enable = doc["display_enable"];
-        if (doc["ads1115_enable"]) ads1115_enable = doc["ads1115_enable"];
-        if (doc["mpu9250_enable"]) mpu9250_enable = doc["mpu9250_enable"];
-    
-        if (doc["latitude"]) latitude = doc["latitude"];
-        if (doc["longitude"]) longitude = doc["longitude"];
-        if (doc["altitude"]) altitude = doc["altitude"];
-        if (doc["declination"]) declination = doc["declination"];
+      if (doc["sta_enable"]) sta_enable = doc["sta_enable"];
+      if (doc["sta_ssid"]) strcpy(sta_ssid, (const char*)doc["sta_ssid"]);
+      if (doc["sta_key"]) strcpy(sta_key, (const char*)doc["sta_key"]);
 
-        if (doc["tracker_enable"]) tracker_enable = doc["tracker_enable"];
-        if (doc["tle_name"]) strcpy(tle_name, (const char*)doc["tle_name"]);
-        if (doc["tle_line1"]) strcpy(tle_line1, (const char*)doc["tle_line1"]);
-        if (doc["tle_line2"]) strcpy(tle_line2, (const char*)doc["tle_line2"]);
-        if (doc["auto_control"]) auto_control = doc["auto_control"];
+      if (doc["beep_enable"]) beep_enable = doc["beep_enable"];
+      if (doc["analog_enable"]) analog_enable = doc["analog_enable"];
+      if (doc["display_enable"]) display_enable = doc["display_enable"];
+      if (doc["ads1115_enable"]) ads1115_enable = doc["ads1115_enable"];
 
-        if (doc["motor_enable"]) motor_enable = doc["motor_enable"];
-        if (doc["ms_per_deg"]) ms_per_deg = doc["ms_per_deg"];
+      if (doc["post_enable"]) post_enable = doc["post_enable"];
+      if (doc["api_url"]) strcpy(api_url, (const char*)doc["api_url"]);
+      if (doc["api_key"]) strcpy(api_key, (const char*)doc["api_key"]);
 
-        saveConfig();
-        Serial.println("Save config");
-      }
+      if (doc["mpu9250_enable"]) mpu9250_enable = doc["mpu9250_enable"];
+  
+      if (doc["latitude"]) latitude = doc["latitude"];
+      if (doc["longitude"]) longitude = doc["longitude"];
+      if (doc["altitude"]) altitude = doc["altitude"];
+      if (doc["declination"]) declination = doc["declination"];
+
+      if (doc["tracker_enable"]) tracker_enable = doc["tracker_enable"];
+      if (doc["tle_name"]) strcpy(tle_name, (const char*)doc["tle_name"]);
+      if (doc["tle_line1"]) strcpy(tle_line1, (const char*)doc["tle_line1"]);
+      if (doc["tle_line2"]) strcpy(tle_line2, (const char*)doc["tle_line2"]);
+      if (doc["auto_control"]) auto_control = doc["auto_control"];
+
+      if (doc["motor_enable"]) motor_enable = doc["motor_enable"];
+      if (doc["ms_per_deg"]) ms_per_deg = doc["ms_per_deg"];
+  
+      saveConfig();
+      Serial.println("Save config");
     }
 
     String json;
@@ -146,8 +153,15 @@ void webserverSetup()
     int n = WiFi.scanNetworks();
 
     json += "[";
-    json += "{\"label\":\"Wifi Connect\",\"name\":\"expand_wifi\",\"value\":1,\"elements\":[";
-    json += "{\"type\":\"select\",\"label\":\"SSID\",\"name\":\"ssid\",\"value\":\"" + WiFi.SSID() + "\",\"options\":[";
+    json += "{\"label\":\"Wifi AP\",\"name\":\"expand_wifiap\",\"value\":1,\"elements\":[";
+    json += "{\"type\":\"text\",\"label\":\"AP SSID\",\"name\":\"ap_ssid\",\"value\":\"" + String(ap_ssid) + "\"},";
+    json += "{\"type\":\"text\",\"label\":\"AP Key\",\"name\":\"ap_key\",\"value\":\"" + String(ap_key) + "\"}";
+    json += "]},";
+
+    //if (sta_enable) {
+    json += "{\"label\":\"Wifi Sta\",\"name\":\"expand_wifista\",\"value\":1,\"elements\":[";
+    json += "{\"type\":\"select\",\"label\":\"Wifi Sta\",\"name\":\"sta_enable\",\"value\":\"" + String(sta_enable) + "\",\"options\":[[\"0\",\"Disabled\"],[\"1\",\"Enabled\"]]},";
+    json += "{\"type\":\"select\",\"label\":\"Sta SSID\",\"name\":\"ssid\",\"value\":\"" + WiFi.SSID() + "\",\"options\":[";
     if (n > 0) {
       for (int i = 0; i < n; i++) {
         json += sep+"[\""+WiFi.SSID(i)+"\",\""+WiFi.SSID(i)+" "+String(getRSSIasQuality(WiFi.RSSI(i)))+"%";
@@ -161,8 +175,9 @@ void webserverSetup()
       json += "[\"\",\"\"]";
     }
     json += "]},";
-    json += "{\"type\":\"text\",\"label\":\"Password\",\"name\":\"password\",\"value\":\"" + String(password) + "\"}";
+    json += "{\"type\":\"text\",\"label\":\"Sta Key\",\"name\":\"sta_key\",\"value\":\"" + String(sta_key) + "\"}";
     json += "]},";
+    //}
 
     json += "{\"label\":\"Components\",\"name\":\"expand_component\",\"value\":1,\"elements\":[";
     json += "{\"type\":\"select\",\"label\":\"Beep\",\"name\":\"beep_enable\",\"value\":\"" + String(beep_enable) + "\",\"options\":[[\"0\",\"Disabled\"],[\"1\",\"Enabled\"]]},";
@@ -170,6 +185,12 @@ void webserverSetup()
     json += "{\"type\":\"select\",\"label\":\"Display\",\"name\":\"display_enable\",\"value\":\"" + String(display_enable) + "\",\"options\":[[\"0\",\"Disabled\"],[\"1\",\"Enabled\"]]},";
     json += "{\"type\":\"select\",\"label\":\"ADS1115\",\"name\":\"ads1115_enable\",\"value\":\"" + String(ads1115_enable) + "\",\"options\":[[\"0\",\"Disabled\"],[\"1\",\"Enabled\"]]},";
     json += "{\"type\":\"select\",\"label\":\"MPU9250\",\"name\":\"mpu9250_enable\",\"value\":\"" + String(mpu9250_enable) + "\",\"options\":[[\"0\",\"Disabled\"],[\"1\",\"Enabled\"]]}";
+    json += "]},";
+
+    json += "{\"label\":\"API Post\",\"name\":\"expand_post\",\"value\":1,\"elements\":[";
+    json += "{\"type\":\"select\",\"label\":\"API Post\",\"name\":\"post_enable\",\"value\":\"" + String(post_enable) + "\",\"options\":[[\"0\",\"Disabled\"],[\"1\",\"Enabled\"]]},";
+    json += "{\"type\":\"text\",\"label\":\"API url\",\"name\":\"api_url\",\"value\":\"" + String(api_url) + "\"},";
+    json += "{\"type\":\"text\",\"label\":\"API key\",\"name\":\"api_key\",\"value\":\"" + String(api_key) + "\"}";
     json += "]},";
 
     json += "{\"label\":\"My Location\",\"name\":\"expand_location\",\"value\":1,\"elements\":[";
@@ -341,6 +362,7 @@ void webserverSetup()
     json += "]},";
 
     json += "{\"label\":\"Error\",\"name\":\"expand_errors\",\"value\":"+String(expand_errors)+",\"elements\":[";
+    json += "{\"type\":\"text\",\"label\":\"Wifi\",\"name\":\"wifi_error\",\"value\":\""+String(wifi_error)+"\",\"attrib\":\"disabled\"},";
     json += "{\"type\":\"text\",\"label\":\"Get\",\"name\":\"get_error\",\"value\":\""+String(get_error)+"\",\"attrib\":\"disabled\"},";
     json += "{\"type\":\"text\",\"label\":\"Http Code\",\"name\":\"http_code\",\"value\":\""+String(http_code)+"\",\"attrib\":\"disabled\"}";
     json += "]},";

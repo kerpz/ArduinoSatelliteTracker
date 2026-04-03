@@ -153,9 +153,15 @@ void appSetup()
 
   getTLE("25544");
   delay(100);
-  trackerSetup();
 
-  mpu9250Setup();
+  if (analog_enable)
+    analogSetup();
+
+  if (tracker_enable)
+    trackerSetup();
+
+  if (mpu9250_enable)
+    mpu9250Setup();
 }
 
 void appLoop()
