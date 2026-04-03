@@ -279,7 +279,7 @@ void webserverSetup()
     json += "[";
     if (analog_enable) {
       json += "{\"label\":\"Analog Sensor\",\"name\":\"expand_analog\",\"value\":1,\"elements\":[";
-      json += "{\"type\":\"text\",\"label\":\"Volt\",\"name\":\"device_voltage\",\"value\":\""+String(device_voltage)+"\",\"attrib\":\"disabled\"}";
+      json += "{\"type\":\"text\",\"label\":\"Volt\",\"name\":\"device_voltage\",\"value\":\""+String(a_voltage)+"\",\"attrib\":\"disabled\"}";
       json += "]},";
     }
 
