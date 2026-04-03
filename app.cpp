@@ -3,6 +3,10 @@
 
 #include "app.h"
 
+// const int sclPin = D1;  // SCL
+// const int sdaPin = D2;  // SDA
+// const int out1Control = D3; // use pnp // pulled up 2n3906
+// const int out2Control = D4; // use pnp pulled up 2n3906
 // L298 Dual H Bridge motor pins
 const int azFwdPin = D5;
 const int azRevPin = D6;
