@@ -7,7 +7,7 @@ const char index_html[] PROGMEM = R"rawliteral(
 
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
-  <title>ESP8266</title>
+  <title>KERPZ</title>
   <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
   <style>
     body {
@@ -259,7 +259,7 @@ const char index_html[] PROGMEM = R"rawliteral(
 
 <body>
   <nav>
-    <b>ESP8266</b>
+    <b>KERPZ</b>
     <a href="#" class="toggle-button">
       <span class="bar"></span>
       <span class="bar"></span>
@@ -292,7 +292,7 @@ const char index_html[] PROGMEM = R"rawliteral(
     },
     {
       label: 'Group 2', name: 'group2', value: 1, elements: [
-        { type: 'arrows' }
+        { type: 'arrows', name: 'arrows' }
       ]
     }
     ]
@@ -303,6 +303,7 @@ const char index_html[] PROGMEM = R"rawliteral(
     const baseurl = window.location.hostname || 'tracker.local';
     let _updateInterval = 2000;
     let _reloadTimerId;
+    let _fetch_error = 0;
 
     const serialize = (inObj) => {
       let elements = document.querySelectorAll("input, select, textarea"); // exclude button
@@ -339,10 +340,16 @@ const char index_html[] PROGMEM = R"rawliteral(
                 }
               });
             });
+            _fetch_error = 0;
           }
         }
         catch (error) {
           console.log(error);
+          _fetch_error++;
+          console.log(_fetch_error);
+          if (_fetch_error < 5) {
+            _reloadTimerId = setTimeout(() => { fetchPage(path[1], post, false); }, _updateInterval);
+          }
         }
       }
     }
@@ -356,6 +363,29 @@ const char index_html[] PROGMEM = R"rawliteral(
         });
         elements = await response.json();
         createPage(elements);
+      }
+      catch (error) {
+        console.log('error in fileUpload');
+      }
+    }
+    const fetchWifi = async (defaultSSID) => {
+      try {
+        const sel = document.getElementById('_sta_ssid');
+        sel.innerHTML = '';
+
+        const res = await fetch(`http://${baseurl}/scan`);
+        const nets = await res.json();
+
+        nets.forEach(net => {
+            const opt = document.createElement('option');
+            opt.value = net.ssid;
+            let lock = net.authmode !== 0 ? ' &#128274;' : '';
+            opt.text = `${net.ssid} ${net.signal}% ${lock}`;
+            if (net.ssid === defaultSSID) {
+              opt.selected = true;
+            }
+            sel.appendChild(opt);
+        });
       }
       catch (error) {
         console.log('error in fileUpload');
@@ -452,33 +482,38 @@ const char index_html[] PROGMEM = R"rawliteral(
               });
               if (_updateInterval > 0) _reloadTimerId = setTimeout(() => { fetchPage(path[1], serialize(), false); }, _updateInterval);
             case 'select':
-              let opts = '';
-              for (let j = 0; j < obj.options.length; ++j) {
-                let a = obj.options[j];
-                if (a.length == 1) a.push(a[0]);
-                opts += '<option value="' + a[0] + '"' + ((a[0] == obj.value) ? ' selected' : '') + '>' + a[1] + '</option>';
+              if (obj.name === 'sta_ssid') {
+                fetchWifi(obj.value);
               }
-              el.innerHTML = opts;
+              else {
+                let opts = '';
+                for (let j = 0; j < obj.options.length; ++j) {
+                  let a = obj.options[j];
+                  if (a.length == 1) a.push(a[0]);
+                  opts += '<option value="' + a[0] + '"' + ((a[0] == obj.value) ? ' selected' : '') + '>' + a[1] + '</option>';
+                }
+                el.innerHTML = opts;
+              }
               break;
             case 'button':
               el.addEventListener('click', async (e) => {
                 // e.stopImmediatePropagation();
                 e.preventDefault();
+                if (obj.confirm && !confirm(obj.confirm)) return;
                 el.disabled = true;
-                // violation in ms
-                if (obj.confirm) {
-                  if (!confirm(obj.confirm)) {
-                    return;
+                try {
+                  if (obj.name === 'upload') {
+                    const fileInput = document.querySelector('#_file');
+                    await fileUpload(fileInput);
+                  } else {
+                    let inObj = {};
+                    inObj[obj.name] = obj.value;
+                    await fetchPage(path[1], serialize(inObj));
                   }
-                }
-                if (obj.name === 'upload') {
-                  const fileInput = document.querySelector('#_file');
-                  await fileUpload(fileInput);
-                }
-                else {
-                  let inObj = {};
-                  inObj[obj.name] = obj.value;
-                  await fetchPage(path[1], serialize(inObj));
+                } catch (err) {
+                  console.error(err);
+                } finally {
+                  el.disabled = false;
                 }
               });
               break;
@@ -518,9 +553,9 @@ const char index_html[] PROGMEM = R"rawliteral(
       });
     }
     window.addEventListener('load', (e) => {
-      /*
-      console.log(`WebSocket connection to ws://${baseurl}:81`);
-      websocket = new WebSocket(`ws://${baseurl}:81`);
+
+      console.log(`WebSocket connection to ws://${baseurl}/ws`);
+      websocket = new WebSocket(`ws://${baseurl}/ws`);
       websocket.onopen = (e) => {
           console.log('onopen');
       };
@@ -530,9 +565,11 @@ const char index_html[] PROGMEM = R"rawliteral(
       };
       websocket.onmessage = (e) => {
           console.log(event.data)
-          let obj = JSON.parse(event.data);
+          const ws_debug = document.getElementById('_ws_debug');
+          ws_debug.value += event.data;
+          //let obj = JSON.parse(event.data);
+          //fetchPage(path[1], obj, false);
       };
-      */
 
       const hash = location.hash.split("#");
       if (hash[1]) {
@@ -551,6 +588,7 @@ const char index_html[] PROGMEM = R"rawliteral(
       if (hash[1]) {
         path = hash[1].split("/");
         fetchPage(path[1], '{}');
+        navLinks.classList.remove('active');
       }
     });
 
